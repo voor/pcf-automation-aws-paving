@@ -2,3 +2,7 @@
 	path = terraforming-gcp
 	url = https://github.com/pivotal-cf/terraforming-gcp.git
 	branch = master
+[submodule "terraforming-aws"]
+	path = terraforming-aws
+	url = https://github.com/voor/terraforming-aws
+	branch = large-changes

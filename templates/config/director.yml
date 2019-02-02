@@ -1,97 +1,100 @@
 az-configuration:
-- name: {{ index (ds "data").azs 0 }}
-- name: {{ index (ds "data").azs 1 }}
-- name: {{ index (ds "data").azs 2 }}
+{{range (ds "data").azs}}
+- name: {{.}}
+{{end}}
+properties-configuration:
+  director_configuration:
+    ntp_servers_string: 169.254.169.123
+{{if index (ds "data") "ssl_cert"}}
+  security_configuration:
+    trusted_certificates: |
+{{indent 6 (ds "data").ssl_cert | yaml}}
+{{end}}
+  iaas_configuration:
+    access_key_id: {{(ds "data").ops_manager_iam_user_access_key}}
+    secret_access_key: {{(ds "data").ops_manager_iam_user_secret_key}}
+    iam_instance_profile: {{(ds "data").ops_manager_iam_instance_profile_name}}
+    vpc_id: {{(ds "data").vpc_id}}
+    security_group: {{(ds "data").vms_security_group_id}}
+    key_pair_name: {{(ds "data").ops_manager_ssh_public_key_name}}
+    ssh_private_key: {{ (ds "data").ops_manager_ssh_private_key | json }}
+    region: {{(ds "data").region}}
 network-assignment:
   network:
-    name: {{ (ds "data").management_subnet_name }}
-  other_availability_zones: []
+    name: ops-manager
   singleton_availability_zone:
-    name: {{ index (ds "data").azs 0 }}
+    name: {{index (ds "data").azs 0}}
 networks-configuration:
   icmp_checks_enabled: false
   networks:
-  - name: {{ (ds "data").management_subnet_name }}
+  - name: ops-manager
     subnets:
-    - iaas_identifier: {{ (ds "data").network_name }}/{{ (ds "data").management_subnet_name }}/{{ (ds "data").region }}
-      cidr: {{ (ds "data").infrastructure_subnet_cidr }}
-      dns: 169.254.169.254
-      gateway: {{ (ds "data").management_subnet_gateway }}
-      reserved_ip_ranges: {{ $gateway := (ds "data").management_subnet_gateway }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.9
-      availability_zone_names:
-      - {{ index (ds "data").azs 0 }}
-      - {{ index (ds "data").azs 1 }}
-      - {{ index (ds "data").azs 2 }}
-  - name: {{ (ds "data").pas_subnet_name }}
+    {{range $i, $a := (ds "data").infrastructure_subnet_cidrs}}
+    - availability_zone_names:
+      - {{index $.azs $i}}
+      cidr: {{index $.infrastructure_subnet_cidrs $i}}
+      dns: 169.254.169.253
+      gateway: {{index $.infrastructure_subnet_gateways $i}}
+      iaas_identifier: {{index $.infrastructure_subnet_ids $i}}
+      reserved_ip_ranges:  {{ $gateway := index (ds "data").infrastructure_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+    {{end}}
+{{if index (ds "data") "pas_subnet_cidrs"}}
+  - name: pas
     subnets:
-    - iaas_identifier: {{ (ds "data").network_name }}/{{ (ds "data").pas_subnet_name }}/{{ (ds "data").region }}
-      cidr: {{ (ds "data").pas_subnet_cidr }}
-      dns: 169.254.169.254
-      gateway: {{ (ds "data").pas_subnet_gateway }}
-      reserved_ip_ranges: {{ $gateway := (ds "data").pas_subnet_gateway }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.9
-      availability_zone_names:
-      - {{ index (ds "data").azs 0 }}
-      - {{ index (ds "data").azs 1 }}
-      - {{ index (ds "data").azs 2 }}
-  - name: {{ (ds "data").services_subnet_name }}
+    {{range $i, $a := (ds "data").pas_subnet_cidrs}}
+    - availability_zone_names:
+      - {{index $.azs $i}}
+      cidr: {{index $.pas_subnet_cidrs $i}}
+      dns: 169.254.169.253
+      gateway: {{index $.pas_subnet_gateways $i}}
+      iaas_identifier: {{index $.pas_subnet_ids $i}}
+      reserved_ip_ranges: {{ $gateway := index (ds "data").pas_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+    {{end}}
+{{end}}
+{{if index (ds "data") "pks_subnet_cidrs"}}
+  - name: pks
     subnets:
-    - iaas_identifier: {{ (ds "data").network_name }}/{{ (ds "data").services_subnet_name }}/{{ (ds "data").region }}
-      cidr: {{ (ds "data").services_subnet_cidr }}
-      dns: 169.254.169.254
-      gateway: {{ (ds "data").services_subnet_gateway }}
-      reserved_ip_ranges: {{ $gateway := (ds "data").services_subnet_gateway }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.9
-      availability_zone_names:
-      - {{ index (ds "data").azs 0 }}
-      - {{ index (ds "data").azs 1 }}
-      - {{ index (ds "data").azs 2 }}
-properties-configuration:
-  director_configuration:
-    allow_legacy_agents: true
-    blobstore_type: local
-    bosh_recreate_on_next_deploy: false
-    bosh_recreate_persistent_disks_on_next_deploy: false
-    database_type: internal
-    director_worker_count: 5
-    encryption:
-      keys: []
-      providers: []
-    hm_emailer_options:
-      enabled: false
-    hm_pager_duty_options:
-      enabled: false
-    identification_tags: {}
-    keep_unreachable_vms: false
-    local_blobstore_options:
-      tls_enabled: true
-    ntp_servers_string: 169.254.169.254
-    post_deploy_enabled: false
-    resurrector_enabled: false
-    retry_bosh_deploys: false
-    skip_director_drain: true
-  dns_configuration:
-    excluded_recursors: []
-    handlers: []
-  iaas_configuration:
-    additional_cloud_properties: {}
-    default_deployment_tag: {{ (ds "data").vm_tag }}
-    project: {{ (ds "data").project }}
-    auth_json: ((gcp_auth_json))
-  security_configuration:
-    generate_vm_passwords: true
-    opsmanager_root_ca_trusted_certs: true
-  syslog_configuration:
-    enabled: false
+    {{range $i, $a := (ds "data").pks_subnet_cidrs}}
+    - availability_zone_names:
+      - {{index $.azs $i}}
+      cidr: {{index $.pks_subnet_cidrs $i}}
+      dns: 169.254.169.253
+      gateway: {{index $.pks_subnet_gateways $i}}
+      iaas_identifier: {{index $.pks_subnet_ids $i}}
+      reserved_ip_ranges: {{ $gateway := index (ds "data").pks_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+    {{end}}
+{{end}}
+{{if index (ds "data") "control_plane_subnet_cidrs" }}
+  - name: control-plane
+    subnets:
+    {{range $i, $a := (ds "data").control_plane_subnet_cidrs}}
+    - availability_zone_names:
+        - {{index $.azs $i}}
+      cidr: {{index $.control_plane_subnet_cidrs $i}}
+      dns: 169.254.169.253
+      gateway: {{index $.control_plane_subnet_gateways $i}}
+      iaas_identifier: {{index $.control_plane_subnet_ids $i}}
+      reserved_ip_ranges: {{ $gateway := index (ds "data").control_plane_subnet_cidrs $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+    {{end}}
+{{else}}
+  - name: services
+    subnets:
+    {{range $i, $a := (ds "data").services_subnet_cidrs}}
+    - availability_zone_names:
+        - {{index $.azs $i}}
+      cidr: {{index $.services_subnet_cidrs $i}}
+      dns: 169.254.169.253
+      gateway: {{index $.services_subnet_gateways $i}}
+      iaas_identifier: {{index $.services_subnet_ids $i}}
+      reserved_ip_ranges: {{ $gateway := index (ds "data").services_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+    {{end}}
+{{end}}
 resource-configuration:
   compilation:
-    instances: automatic
     instance_type:
-      id: automatic
-    internet_connected: true
-  director:
-    instances: automatic
-    persistent_disk:
-      size_mb: automatic
-    instance_type:
-      id: automatic
-    internet_connected: true
-vmextensions-configuration: []
+      id: c4.xlarge
+{{if index (ds "data") "ssl_cert"}}
+security-configuration:
+  trusted_certificates: |
+{{indent 4 (ds "data").ssl_cert | yaml}}
+{{end}}

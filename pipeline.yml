@@ -41,8 +41,8 @@ resources:
         ops_manager_vm: false
         cluster_name: ((terraform.aws.cluster_name))
 
-        ssl_cert: ((pks.ssl_cert.certificate))
-        ssl_private_key: ((pks.ssl_cert.private_key))
+        ssl_cert: ((pks_ssl_cert.certificate))
+        ssl_private_key: ((pks_ssl_cert.private_key))
       env:
         AWS_ACCESS_KEY_ID: ((access_key_id))
         AWS_SECRET_ACCESS_KEY: ((secret_access_key))
@@ -114,7 +114,7 @@ resources:
   - name: configuration
     type: git
     source:
-      private_key: ((github.private_key))
+      private_key: ((pcf-config_deploy_rsa.private_key))
       uri: ((github.repos.configuration.uri))
       branch: master
 
@@ -219,7 +219,7 @@ jobs:
             params:
               unpack: true
           - get: configuration
-            passed: [template-configuration]
+            passed: [configuration]
           - get: pcf-automation-source
           - get: env-state-aws
           - get: daily-trigger
@@ -238,8 +238,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ((access_key_id))
           AWS_SECRET_ACCESS_KEY: ((secret_access_key))
           OM_USERNAME: ((opsman.username))
-          OM_PASSWORD: ((opsman.password))
-          OM_DECRYPTION_PASSPHRASE: ((opsman.decryption-passphrase))
+          OM_PASSWORD: ((opsman_password))
+          OM_DECRYPTION_PASSPHRASE: ((opsman_decryption-passphrase))
       - task: download-opsman-image
         image: platform-automation-image
         file: platform-automation-tasks/tasks/download-product.yml
@@ -263,7 +263,7 @@ jobs:
             params:
               unpack: true
           - get: configuration
-            passed: [template-configuration]
+            passed: [configuration]
           - get: pcf-automation-source
           - get: env-state-aws
           - get: daily-trigger
@@ -306,7 +306,7 @@ jobs:
             passed: [fetch-opsman]
           - get: configuration
           - get: pcf-automation-source
-          - get: env-state-pks
+          - get: env-state-aws
       - <<: *interpolate
       - task: create-vm
         image: platform-automation-image
@@ -554,9 +554,7 @@ jobs:
         params:
           ENV_FILE: ((pks.env_name))/env/env.yml
 
-  # DESTROY
-
-  - name: destroy
+  - name: destroy-installation
     serial: true
     public: false
     plan:
@@ -570,7 +568,6 @@ jobs:
             params:
               unpack: true
           - get: configuration
-          - get: env-state-aws
       - <<: *interpolate
       - try:
           task: delete-installation
@@ -587,8 +584,19 @@ jobs:
           state: configuration
           config: configuration-interpolated
         params:
+          VARS_FILES: config/((pks.env_name))/config/opsman-vars.yml
           STATE_FILE: ((pks.env_name))/state/state.yml
           OPSMAN_CONFIG_FILE: ((pks.env_name))/config/opsman.yml
+
+  - name: destroy-terraform
+    serial: true
+    public: false
+    plan:
+      - aggregate:
+          - get: pcf-automation-source
+            trigger: false
+          - get: configuration
+          - get: env-state-aws
       - put: env-state-aws
         params:
           terraform_source: pcf-automation-source/terraforming-aws/terraforming-pks
@@ -602,7 +610,7 @@ jobs:
           config: configuration
         params:
           ENV_NAME: ((pks.env_name))
-          GIT_AUTHOR_EMAIL: "pcf-pipeline-bot@banck.net"
+          GIT_AUTHOR_EMAIL: "pcf-pipeline-bot@pivdevops.com"
           GIT_AUTHOR_NAME: "PCF Automation Bot"
           COMMIT_MESSAGE: "Delete Environment"
         config:
@@ -637,12 +645,12 @@ groups:
   - name: prepare
     jobs:
       - terraforming-aws
-      - template-configuration
+      - configuration
       - fetch-platform-automation
   - name: fetch
     jobs:
       - fetch-opsman
-      - fetch-pas
+      - fetch-pks
   - name: install
     jobs:
       - install-opsman
@@ -657,4 +665,5 @@ groups:
 
   - name: destroy
     jobs:
-      - destroy
+      - destroy-terraform
+      - destroy-installation

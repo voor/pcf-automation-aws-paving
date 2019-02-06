@@ -6,7 +6,7 @@ github:
     configuration:
       uri: "git@github.com:voor/some-private-repository-for-your-stuff"
     pcf-automation-source:
-      uri: "git@github.com:voor/pcf-automation-aws-paving.git"
+      uri: "https://github.com/voor/pcf-automation-aws-paving.git"
 
 buckets:
   terraform: "my-little-bucket"

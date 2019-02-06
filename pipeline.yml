@@ -36,7 +36,7 @@ resources:
         hosted_zone: ((terraform.aws.hosted_zone))
         region: ((region))
         availability_zones: ((terraform.aws.availability_zones))
-        rds_instance_count: ((aws.rds_instance_count))
+        rds_instance_count: ((terraform.aws.rds_instance_count))
 
         ops_manager_vm: false
         cluster_name: ((terraform.aws.cluster_name))

@@ -8,7 +8,7 @@ properties-configuration:
 {{if index (ds "data") "ssl_cert"}}
   security_configuration:
     trusted_certificates: |
-{{indent 6 (ds "data").ssl_cert | yaml}}
+{{indent 6 (ds "data").ssl_cert}}
 {{end}}
   iaas_configuration:
     access_key_id: {{(ds "data").ops_manager_iam_user_access_key}}
@@ -37,7 +37,7 @@ networks-configuration:
       dns: 169.254.169.253
       gateway: {{index (ds "data").infrastructure_subnet_gateways $i}}
       iaas_identifier: {{index (ds "data").infrastructure_subnet_ids $i}}
-      reserved_ip_ranges:  {{ $gateway := index (ds "data").infrastructure_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+      reserved_ip_ranges:  {{ $gateway := index (ds "data").infrastructure_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.{{ add (index $gateway_arr 3) 4 }}
     {{end}}
 {{if index (ds "data") "pas_subnet_cidrs"}}
   - name: pas
@@ -49,7 +49,7 @@ networks-configuration:
       dns: 169.254.169.253
       gateway: {{index (ds "data").pas_subnet_gateways $i}}
       iaas_identifier: {{index (ds "data").pas_subnet_ids $i}}
-      reserved_ip_ranges: {{ $gateway := index (ds "data").pas_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+      reserved_ip_ranges: {{ $gateway := index (ds "data").pas_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.{{ add (index $gateway_arr 3) 4 }}
     {{end}}
 {{end}}
 {{if index (ds "data") "pks_subnet_cidrs"}}
@@ -62,7 +62,7 @@ networks-configuration:
       dns: 169.254.169.253
       gateway: {{index (ds "data").pks_subnet_gateways $i}}
       iaas_identifier: {{index (ds "data").pks_subnet_ids $i}}
-      reserved_ip_ranges: {{ $gateway := index (ds "data").pks_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+      reserved_ip_ranges: {{ $gateway := index (ds "data").pks_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.{{ add (index $gateway_arr 3) 4 }}
     {{end}}
 {{end}}
 {{if index (ds "data") "control_plane_subnet_cidrs" }}
@@ -75,7 +75,8 @@ networks-configuration:
       dns: 169.254.169.253
       gateway: {{index (ds "data").control_plane_subnet_gateways $i}}
       iaas_identifier: {{index (ds "data").control_plane_subnet_ids $i}}
-      reserved_ip_ranges: {{ $gateway := index (ds "data").control_plane_subnet_cidrs $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+      # FIXME: This won't work, because by default our subnets are smaller for control plane.
+      reserved_ip_ranges: {{ $gateway := index (ds "data").control_plane_subnet_cidrs $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.{{ add (index $gateway_arr 3) 4 }}
     {{end}}
 {{else}}
   - name: services
@@ -87,7 +88,7 @@ networks-configuration:
       dns: 169.254.169.253
       gateway: {{index (ds "data").services_subnet_gateways $i}}
       iaas_identifier: {{index (ds "data").services_subnet_ids $i}}
-      reserved_ip_ranges: {{ $gateway := index (ds "data").services_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
+      reserved_ip_ranges: {{ $gateway := index (ds "data").services_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.{{ add (index $gateway_arr 3) 4 }}
     {{end}}
 {{end}}
 resource-configuration:
@@ -97,5 +98,5 @@ resource-configuration:
 {{if index (ds "data") "ssl_cert"}}
 security-configuration:
   trusted_certificates: |
-{{indent 4 (ds "data").ssl_cert | yaml}}
+{{indent 4 (ds "data").ssl_cert}}
 {{end}}

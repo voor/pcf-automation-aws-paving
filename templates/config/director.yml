@@ -17,7 +17,8 @@ properties-configuration:
     vpc_id: {{(ds "data").vpc_id}}
     security_group: {{(ds "data").vms_security_group_id}}
     key_pair_name: {{(ds "data").ops_manager_ssh_public_key_name}}
-    ssh_private_key: {{ (ds "data").ops_manager_ssh_private_key | json }}
+    ssh_private_key: |
+{{ indent 6 (ds "data").ops_manager_ssh_private_key }}
     region: {{(ds "data").region}}
 network-assignment:
   network:
@@ -31,11 +32,11 @@ networks-configuration:
     subnets:
     {{range $i, $a := (ds "data").infrastructure_subnet_cidrs}}
     - availability_zone_names:
-      - {{index $.azs $i}}
-      cidr: {{index $.infrastructure_subnet_cidrs $i}}
+      - {{index (ds "data").azs $i}}
+      cidr: {{index (ds "data").infrastructure_subnet_cidrs $i}}
       dns: 169.254.169.253
-      gateway: {{index $.infrastructure_subnet_gateways $i}}
-      iaas_identifier: {{index $.infrastructure_subnet_ids $i}}
+      gateway: {{index (ds "data").infrastructure_subnet_gateways $i}}
+      iaas_identifier: {{index (ds "data").infrastructure_subnet_ids $i}}
       reserved_ip_ranges:  {{ $gateway := index (ds "data").infrastructure_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
     {{end}}
 {{if index (ds "data") "pas_subnet_cidrs"}}
@@ -43,11 +44,11 @@ networks-configuration:
     subnets:
     {{range $i, $a := (ds "data").pas_subnet_cidrs}}
     - availability_zone_names:
-      - {{index $.azs $i}}
-      cidr: {{index $.pas_subnet_cidrs $i}}
+      - {{index (ds "data").azs $i}}
+      cidr: {{index (ds "data").pas_subnet_cidrs $i}}
       dns: 169.254.169.253
-      gateway: {{index $.pas_subnet_gateways $i}}
-      iaas_identifier: {{index $.pas_subnet_ids $i}}
+      gateway: {{index (ds "data").pas_subnet_gateways $i}}
+      iaas_identifier: {{index (ds "data").pas_subnet_ids $i}}
       reserved_ip_ranges: {{ $gateway := index (ds "data").pas_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
     {{end}}
 {{end}}
@@ -56,11 +57,11 @@ networks-configuration:
     subnets:
     {{range $i, $a := (ds "data").pks_subnet_cidrs}}
     - availability_zone_names:
-      - {{index $.azs $i}}
-      cidr: {{index $.pks_subnet_cidrs $i}}
+      - {{index (ds "data").azs $i}}
+      cidr: {{index (ds "data").pks_subnet_cidrs $i}}
       dns: 169.254.169.253
-      gateway: {{index $.pks_subnet_gateways $i}}
-      iaas_identifier: {{index $.pks_subnet_ids $i}}
+      gateway: {{index (ds "data").pks_subnet_gateways $i}}
+      iaas_identifier: {{index (ds "data").pks_subnet_ids $i}}
       reserved_ip_ranges: {{ $gateway := index (ds "data").pks_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
     {{end}}
 {{end}}
@@ -69,11 +70,11 @@ networks-configuration:
     subnets:
     {{range $i, $a := (ds "data").control_plane_subnet_cidrs}}
     - availability_zone_names:
-        - {{index $.azs $i}}
-      cidr: {{index $.control_plane_subnet_cidrs $i}}
+        - {{index (ds "data").azs $i}}
+      cidr: {{index (ds "data").control_plane_subnet_cidrs $i}}
       dns: 169.254.169.253
-      gateway: {{index $.control_plane_subnet_gateways $i}}
-      iaas_identifier: {{index $.control_plane_subnet_ids $i}}
+      gateway: {{index (ds "data").control_plane_subnet_gateways $i}}
+      iaas_identifier: {{index (ds "data").control_plane_subnet_ids $i}}
       reserved_ip_ranges: {{ $gateway := index (ds "data").control_plane_subnet_cidrs $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
     {{end}}
 {{else}}
@@ -81,11 +82,11 @@ networks-configuration:
     subnets:
     {{range $i, $a := (ds "data").services_subnet_cidrs}}
     - availability_zone_names:
-        - {{index $.azs $i}}
-      cidr: {{index $.services_subnet_cidrs $i}}
+        - {{index (ds "data").azs $i}}
+      cidr: {{index (ds "data").services_subnet_cidrs $i}}
       dns: 169.254.169.253
-      gateway: {{index $.services_subnet_gateways $i}}
-      iaas_identifier: {{index $.services_subnet_ids $i}}
+      gateway: {{index (ds "data").services_subnet_gateways $i}}
+      iaas_identifier: {{index (ds "data").services_subnet_ids $i}}
       reserved_ip_ranges: {{ $gateway := index (ds "data").services_subnet_gateways $i }}{{$gateway}}-{{ $gateway_arr := split $gateway "." }}{{ index $gateway_arr 0 }}.{{ index $gateway_arr 1 }}.{{ index $gateway_arr 2 }}.4
     {{end}}
 {{end}}

@@ -5,20 +5,20 @@ network-properties:
   service_network:
     name: services
   other_availability_zones:
-    {{range .azs}}
+    {{range (ds "data").azs}}
     - name: {{.}}
     {{end}}
   singleton_availability_zone:
-    name: {{index .azs 0}}
+    name: {{index (ds "data").azs 0}}
 product-properties:
   .pivotal-container-service.pks_tls:
     value:
         cert_pem: |
-{{indent 10 .ssl_cert}}
+{{indent 10 (ds "data").ssl_cert}}
         private_key_pem: |
-{{indent 10 .ssl_private_key}}
+{{indent 10 (ds "data").ssl_private_key}}
   .properties.pks_api_hostname:
-    value: {{.pks_api_endpoint}}
+    value: {{(ds "data").pks_api_endpoint}}
   .properties.plan1_selector.active.master_vm_type:
     value: t2.micro
   .properties.plan1_selector.active.worker_vm_type:
@@ -27,10 +27,10 @@ product-properties:
     value: t2.micro
   .properties.plan1_selector.active.master_az_placement:
     value:
-    - {{index .azs 0}}
+    - {{index (ds "data").azs 0}}
   .properties.plan1_selector.active.worker_az_placement:
     value:
-    {{range .azs}}
+    {{range (ds "data").azs}}
     - {{.}}
     {{end}}
   .properties.plan2_selector:
@@ -47,10 +47,10 @@ product-properties:
     value: t2.micro
   .properties.plan2_selector.active.master_az_placement:
     value:
-    - {{index .azs 0}}
+    - {{index (ds "data").azs 0}}
   .properties.plan2_selector.active.worker_az_placement:
     value:
-    {{range .azs}}
+    {{range (ds "data").azs}}
     - {{.}}
     {{end}}
   .properties.plan2_selector.active.allow_privileged_containers: 
@@ -60,15 +60,15 @@ product-properties:
   .properties.cloud_provider:
     value: AWS
   .properties.cloud_provider.aws.iam_instance_profile_master:
-    value: {{.pks_master_iam_instance_profile_name}}
+    value: {{(ds "data").pks_master_iam_instance_profile_name}}
   .properties.cloud_provider.aws.iam_instance_profile_worker:
-    value: {{.pks_worker_iam_instance_profile_name}}
+    value: {{(ds "data").pks_worker_iam_instance_profile_name}}
   .properties.telemetry_selector:
     value: disabled
 resource-config:
   pivotal-container-service:
     elb_names:
-    {{range .pks_api_target_groups}}
+    {{range (ds "data").pks_api_target_groups}}
     - alb:{{.}}
     {{end}}
     additional_vm_extensions:

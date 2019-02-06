@@ -1,0 +1,1 @@
+pivnet-api-token: {{env.Getenv "PIVNET_API_TOKEN" }}

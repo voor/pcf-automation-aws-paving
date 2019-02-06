@@ -1,18 +1,15 @@
----{{ $tag := split (ds "data").vm_tag "-"}}{{ $env_name := index $tag  0 }}
 opsman-configuration:
-  gcp:
-    gcp_service_account: ((gcp_auth_json))
-    project: {{ (ds "data").project }}
+  aws:
+    access_key_id: {{ env.Getenv "AWS_ACCESS_KEY_ID" }}
+    secret_access_key: {{ env.Getenv "AWS_SECRET_ACCESS_KEY" }}
     region: {{ (ds "data").region }}
-    zone: {{ index (ds "data").azs 0 }}
-    vm_name: {{ $env_name }}-opsman
-    # For SharedVPC: projects/[HOST_PROJECT_ID]/regions/[REGION]/subnetworks/[SUBNET]
-    vpc_subnet: {{ (ds "data").management_subnet_name }}
-    tags: ops-manager,{{ $env_name }}-ops-manager-external
-    # This CPU, Memory and disk size demonstrated here
-    # match the defaults, and needn't be included if these are the desired values
-    custom_cpu: 2
-    custom_memory: 8
-    boot_disk_size: 100
+    vm_name: {{ env.Getenv "ENV_NAME" }}-opsman
+    boot_disk_size: 100                               # default 200
+    vpc_subnet_id: {{index (ds "data").infrastructure_subnet_ids 0}}
+    security_group_id: {{ (ds "data").ops_manager_security_group_id }}
+    key_pair_name: {{ (ds "data").ops_manager_ssh_public_key_name }}
+    iam_instance_profile_name: {{ (ds "data").ops_manager_iam_instance_profile_name }}
+    instance_type: m5.large
     # At least one IP address (public or private) needs to be assigned to the VM.
     public_ip: {{ (ds "data").ops_manager_public_ip }}
+    private_ip: {{ (ds "data").ops_manager_private_ip }}

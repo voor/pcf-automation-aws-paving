@@ -102,7 +102,7 @@ resources:
       access_key_id: ((access_key_id))
       secret_access_key: ((secret_access_key))
       region_name: ((region))
-      versioned_file: installation.zip
+      versioned_file: ((pcf.env_name))/installation.zip
 
   # configurations
   - name: pcf-automation-source
@@ -436,7 +436,6 @@ jobs:
           vars: configuration-interpolated
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
-          VARS_FILES: config/((pcf.env_name))/config/opsman-vars.yml
           STATE_FILE: ((pcf.env_name))/state/state.yml
           OPSMAN_CONFIG_FILE: ((pcf.env_name))/config/opsman.yml
         ensure: *make-state-commit

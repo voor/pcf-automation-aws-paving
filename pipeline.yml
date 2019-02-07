@@ -317,7 +317,7 @@ jobs:
           config: configuration-interpolated
         params:
           STATE_FILE: ((pks.env_name))/state/state.yml
-          OPSMAN_CONFIG_FILE: ((pas.env_name))/config/opsman.yml
+          OPSMAN_CONFIG_FILE: ((pks.env_name))/config/opsman.yml
         ensure: &make-state-commit
           do:
             - task: make-commit

@@ -402,7 +402,7 @@ jobs:
           ENV_FILE: ((pcf.env_name))/env/env.yml
       - put: installation
         params:
-          file: installation/installation.zip
+          file: installation/installation-*.zip
 
   - name: upgrade-opsman
     serial: true

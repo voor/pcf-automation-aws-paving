@@ -1,6 +1,8 @@
 az-configuration:
-{{range (ds "data").azs}}
-- name: {{.}}
+{{range (ds "data").azs}}- name: {{.}}
+  clusters:
+    - cluster: Cluster
+      resource_pool: ""
 {{end}}
 properties-configuration:
   director_configuration:

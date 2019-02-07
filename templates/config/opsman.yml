@@ -3,8 +3,7 @@ opsman-configuration:
     access_key_id: {{ env.Getenv "AWS_ACCESS_KEY_ID" }}
     secret_access_key: {{ env.Getenv "AWS_SECRET_ACCESS_KEY" }}
     region: {{ (ds "data").region }}
-    vm_name: {{ env.Getenv "ENV_NAME" }}-opsman
-    boot_disk_size: 100                               # default 200
+    vm_name: {{ env.Getenv "ENV_NAME" }}-ops-manager
     vpc_subnet_id: {{index (ds "data").public_subnet_ids 0}}
     security_group_id: {{ (ds "data").ops_manager_security_group_id }}
     key_pair_name: {{ (ds "data").ops_manager_ssh_public_key_name }}

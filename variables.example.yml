@@ -21,7 +21,7 @@ terraform:
     rds_instance_count: 0
     cluster_name: "this-is-a-value-that-is-not-required"
 
-pks:
+pcf:
   env_name: "dev"
 
 opsman:

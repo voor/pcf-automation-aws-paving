@@ -100,3 +100,7 @@ security-configuration:
   trusted_certificates: |
 {{indent 4 (ds "data").ssl_cert}}
 {{end}}
+vmextensions-configuration:
+  - name: pks-api-lb-security-groups
+    cloud_properties:
+      security_groups: ["pks_api_lb_security_group", "vms_security_group"]

@@ -95,11 +95,6 @@ resource-configuration:
   compilation:
     instance_type:
       id: c4.xlarge
-{{if index (ds "data") "ssl_cert"}}
-security-configuration:
-  trusted_certificates: |
-{{indent 4 (ds "data").ssl_cert}}
-{{end}}
 vmextensions-configuration:
   - name: pks-api-lb-security-groups
     cloud_properties:

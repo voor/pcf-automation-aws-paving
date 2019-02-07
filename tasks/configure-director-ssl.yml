@@ -18,6 +18,11 @@ run:
   - |
     cat /var/version && echo ""
     set -eux
+    echo "*************** Cert *************"
+    cat config/${CERTIFICATE_PEM}
+    echo "*************** PrivKey *************"
+    cat config/${PRIVATE_KEY_PEM}
+    echo "*************** End *************"
     # shellcheck disable=SC2068
     om --env env/"${ENV_FILE}" update-ssl-certificate \
        --certificate-pem "config/${CERTIFICATE_PEM}" \

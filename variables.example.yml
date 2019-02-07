@@ -23,6 +23,8 @@ terraform:
 
 pcf:
   env_name: "dev"
+  pipeline_email: "concourse@example.com"
+  pipeline_name: "PCF Platform Automation"
 
 opsman:
   username: "admin"

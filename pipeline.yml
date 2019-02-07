@@ -682,6 +682,7 @@ groups:
       - upgrade-opsman
       - export-installation
   - name: install-product
+    jobs:
       - upload-and-stage-product
       - upload-stemcell
       - configure-product

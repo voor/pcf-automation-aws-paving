@@ -1,0 +1,24 @@
+platform: linux
+
+inputs:
+- name: config # contains the director ssl configuration file
+- name: env # contains the env file with target OpsMan Information
+
+params:
+  ENV_FILE: env.yml
+  # - Filepath of the env config YAML
+  # - The path is relative to root of the `env` input
+  CERTIFICATE_PEM: ops_manager_fullchain.pem
+  PRIVATE_KEY_PEM: ops_manager_privkey.pem
+
+run:
+  path: bash
+  args:
+  - "-c"
+  - |
+    cat /var/version && echo ""
+    set -eux
+    # shellcheck disable=SC2068
+    om --env env/"${ENV_FILE}" update-ssl-certificate \
+       --certificate-pem "config/${CERTIFICATE_PEM}" \
+       --private-key-pem "config/${PRIVATE_KEY_PEM}"

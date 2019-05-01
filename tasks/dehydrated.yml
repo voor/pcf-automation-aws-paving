@@ -35,14 +35,4 @@ run:
 
         /home/dehydrated/dehydrated --accept-terms -c
 
-        mkdir -p updated-certificates/${ENV_NAME}.${DNS_SUFFIX}
-        cp -r certificates/${ENV_NAME}.${DNS_SUFFIX} updated-certificates/${ENV_NAME}.${DNS_SUFFIX}
-
-        # Setup for terraform
-        echo "ssl_cert = <<EOF" > certificates/certificates.tfvars
-        cat updated-certificates/${ENV_NAME}.${DNS_SUFFIX}/certs/domain/fullchain.pem > certificates/certificates.tfvars
-        echo "EOF" > certificates/certificates.tfvars
-
-        echo "ssl_private_key = <<EOF" > certificates/certificates.tfvars
-        cat updated-certificates/${ENV_NAME}.${DNS_SUFFIX}/certs/domain/privkey.pem > certificates/certificates.tfvars
-        echo "EOF" > certificates/certificates.tfvars
+        tar cvfz certificates/certificates.tgz certificates/${ENV_NAME}.${DNS_SUFFIX}/

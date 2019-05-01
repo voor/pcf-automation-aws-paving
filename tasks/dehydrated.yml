@@ -7,8 +7,6 @@ image_resource:
     tag: latest
 inputs:
   - name: certificates
-outputs:
-  - name: updated-certificates
 
 params:
   AWS_ACCESS_KEY_ID:

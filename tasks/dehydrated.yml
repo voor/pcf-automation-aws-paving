@@ -1,0 +1,48 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: voor/dehydrated-route53
+    tag: latest
+inputs:
+  - name: certificates
+outputs:
+  - name: updated-certificates
+
+params:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+  DNS_SUFFIX:
+run:
+  path: /bin/sh
+  args:
+    - -c
+    - |
+        set -eu
+
+        mkdir -p certificates/${ENV_NAME}.${DNS_SUFFIX}/{chains,certs,accounts}
+
+        echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > domain" > domains.txt
+
+        export CHALLENGETYPE="dns-01"
+        export HOOK="./hook.sh"
+        export HOOK_CHAIN="no"
+        export LOCKFILE="/tmp/lock"
+        export CHAINCACHE="${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/chains"
+        export CERTDIR="${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/certs"
+        export ACCOUNTDIR="${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/accounts"
+
+        /home/dehydrated/dehydrated --accept-terms -c
+
+        mkdir -p updated-certificates/${ENV_NAME}.${DNS_SUFFIX}
+        cp -r certificates/${ENV_NAME}.${DNS_SUFFIX} updated-certificates/${ENV_NAME}.${DNS_SUFFIX}
+
+        # Setup for terraform
+        echo "ssl_cert = <<EOF" > certificates/certificates.tfvars
+        cat updated-certificates/${ENV_NAME}.${DNS_SUFFIX}/certs/domain/fullchain.pem > certificates/certificates.tfvars
+        echo "EOF" > certificates/certificates.tfvars
+
+        echo "ssl_private_key = <<EOF" > certificates/certificates.tfvars
+        cat updated-certificates/${ENV_NAME}.${DNS_SUFFIX}/certs/domain/privkey.pem > certificates/certificates.tfvars
+        echo "EOF" > certificates/certificates.tfvars

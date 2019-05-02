@@ -1,5 +1,5 @@
 ---
 pivnet-api-token: ((pivnet-api-token))
-pivnet-file-glob: "*AWS.yml"
+pivnet-file-glob: "*aws*.yml"
 pivnet-product-slug: ops-manager
 product-version-regex: ^2\..*$

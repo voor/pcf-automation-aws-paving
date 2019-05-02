@@ -14,9 +14,9 @@ product-properties:
   .pivotal-container-service.pks_tls:
     value:
         cert_pem: |
-{{indent 10 (ds "data").ssl_cert}}
+{{ indent 10 (include "fullchain") }}
         private_key_pem: |
-{{indent 10 (ds "data").ssl_private_key}}
+{{ indent 10 (include "privkey") }}
   .properties.pks_api_hostname:
     value: {{(ds "data").pks_api_endpoint}}
   .properties.plan1_selector.active.master_vm_type:

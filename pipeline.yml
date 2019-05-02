@@ -24,12 +24,10 @@ resources:
   - name: env-state-aws
     type: terraform
     source:
-      storage:
-        bucket: ((buckets.terraform))
-        bucket_path: ((pcf.env_name))
-        access_key_id: ((access_key_id))
-        secret_access_key: ((secret_access_key))
-        region_name: ((region))
+      backend_type: s3
+      backend_config:
+        bucket: ((buckets.installation))
+        key: terraform.tfstate
       vars:
         env_name: ((pcf.env_name))
         dns_suffix: ((terraform.aws.dns_suffix))
@@ -39,10 +37,6 @@ resources:
         rds_instance_count: ((terraform.aws.rds_instance_count))
 
         ops_manager_vm: false
-        cluster_name: ((terraform.aws.cluster_name))
-
-        ssl_cert: ((pks_ssl_cert.certificate))
-        ssl_private_key: ((pks_ssl_cert.private_key))
       env:
         AWS_ACCESS_KEY_ID: ((access_key_id))
         AWS_SECRET_ACCESS_KEY: ((secret_access_key))
@@ -75,7 +69,7 @@ resources:
       access_key_id: ((access_key_id))
       secret_access_key: ((secret_access_key))
       region_name: ((region))
-      regexp: OpsManager(.*)onAWS.yml
+      regexp: ops-manager-aws-(.*).yml
 
   - name: pks-product
     type: s3
@@ -104,12 +98,28 @@ resources:
       region_name: ((region))
       versioned_file: ((pcf.env_name))/installation.zip
 
+  - name: certificates
+    type: s3
+    source:
+      bucket: ((buckets.installation))
+      access_key_id: ((access_key_id))
+      secret_access_key: ((secret_access_key))
+      region_name: ((region))
+      versioned_file: ((pcf.env_name))/certificates.tgz
+      initial_version: 0.0.0
+
   # configurations
   - name: pcf-automation-source
     type: git
     source:
       uri: ((github.repos.pcf-automation-source.uri))
-      branch: master
+      branch: ((github.repos.pcf-automation-source.branch))
+
+  - name: terraforming-aws
+    type: git
+    source:
+      uri: ((github.repos.terraforming-aws.uri))
+      branch: ((github.repos.terraforming-aws.branch))
 
   - name: configuration
     type: git
@@ -135,6 +145,7 @@ interpolate: &interpolate
   input_mapping:
     config: configuration
     terraform-output: env-state-aws
+    certificates: certificates
   output_mapping:
     interpolated-config: configuration-interpolated
   params:
@@ -168,16 +179,43 @@ make-state-commit: &make-state-commit
         merge: true
 
 jobs:
+  - name: letsencrypt-certificates
+    serial: true
+    public: false
+    plan:
+      - aggregate:
+          - get: pcf-automation-source
+            trigger: true
+          - get: certificates
+            params:
+              unpack: true
+          - get: daily-trigger
+            trigger: true
+      - task: dehydrated
+        file: pcf-automation-source/tasks/dehydrated.yml
+        input_mapping:
+          certificates: certificates
+        output_mapping:
+          certificates: updated-certificates
+        params:
+          AWS_ACCESS_KEY_ID: ((access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((secret_access_key))
+          ENV_NAME: ((pcf.env_name))
+          DNS_SUFFIX: ((terraform.aws.dns_suffix))
+      - put: certificates
+        params:
+          file: updated-certificates/certificates*.tgz
+
   - name: terraforming-aws
     serial: true
     public: false
     plan:
-      - get: pcf-automation-source
+      - get: terraforming-aws
         trigger: true
       - put: env-state-aws
         params:
           env_name: ((pcf.env_name))
-          terraform_source: pcf-automation-source/terraforming-aws/terraforming-pks
+          terraform_source: terraforming-aws/terraforming-pks
           delete_on_failure: false
 
   - name: configuration
@@ -187,9 +225,13 @@ jobs:
       - aggregate:
           - get: pcf-automation-source
             trigger: true
-            passed: [terraforming-aws]
           - get: configuration
           - get: env-state-aws
+            passed: [terraforming-aws]
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: add-new-templates
         input_mapping:
           config: configuration
@@ -229,6 +271,7 @@ jobs:
         params:
           repository: config-commit
           merge: true
+
   - name: fetch-platform-automation
     # We use the pivnet resource to bootstrap the pipeline,
     # and because this product is part of the pipeline, not the foundation
@@ -326,6 +369,10 @@ jobs:
           - get: platform-automation-tasks
             params:
               unpack: true
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
           - get: opsman-image
             passed: [fetch-opsman]
           - get: configuration
@@ -615,13 +662,13 @@ jobs:
     public: false
     plan:
       - aggregate:
-          - get: pcf-automation-source
+          - get: terraforming-aws
             trigger: false
           - get: configuration
           - get: env-state-aws
       - put: env-state-aws
         params:
-          terraform_source: pcf-automation-source/terraforming-aws/terraforming-pks
+          terraform_source: terraforming-aws/terraforming-pks
           delete_on_failure: true
           env_name: ((pcf.env_name))
           action: destroy
@@ -666,6 +713,7 @@ jobs:
 groups:
   - name: prepare
     jobs:
+      - letsencrypt-certificates
       - terraforming-aws
       - configuration
       - fetch-platform-automation

@@ -445,6 +445,10 @@ jobs:
           - get: pcf-automation-source
           - get: env-state-aws
             passed: [install-opsman]
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: interpolate-config
         <<: *interpolate
       - task: export-installation
@@ -478,6 +482,10 @@ jobs:
             trigger: true
           - get: pcf-automation-source
           - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: interpolate-config
         <<: *interpolate
       - task: upgrade-opsman
@@ -520,6 +528,10 @@ jobs:
             trigger: true
           - get: pcf-automation-source
           - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: interpolate-config
         <<: *interpolate
       - task: upload-product
@@ -557,6 +569,10 @@ jobs:
             trigger: true
           - get: pcf-automation-source
           - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: interpolate-config
         <<: *interpolate
       - task: upload-pks-stemcell
@@ -584,6 +600,10 @@ jobs:
           - get: configuration
           - get: pcf-automation-source
           - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: interpolate-config
         <<: *interpolate
       - task: configure-product
@@ -612,6 +632,10 @@ jobs:
           - get: configuration
           - get: pcf-automation-source
           - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: interpolate-config
         <<: *interpolate
       - task: apply-product-changes
@@ -636,6 +660,10 @@ jobs:
             params:
               unpack: true
           - get: configuration
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
       - task: interpolate-config
         <<: *interpolate
       - try:

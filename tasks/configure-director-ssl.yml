@@ -17,7 +17,7 @@ run:
   - "-c"
   - |
     cat /var/version && echo ""
-    set -eux
+    set -eu
     # shellcheck disable=SC2068
     om --env env/"${ENV_FILE}" update-ssl-certificate \
        --certificate-pem "$(cat config/${CERTIFICATE_PEM})" \

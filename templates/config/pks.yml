@@ -20,11 +20,11 @@ product-properties:
   .properties.pks_api_hostname:
     value: {{(ds "data").pks_api_endpoint}}
   .properties.plan1_selector.active.master_vm_type:
-    value: t2.micro
+    value: t3.micro
   .properties.plan1_selector.active.worker_vm_type:
-    value: t2.micro
+    value: t3.micro
   .properties.plan1_selector.active.errand_vm_type:
-    value: t2.micro
+    value: t3.micro
   .properties.plan1_selector.active.master_az_placement:
     value:
     - {{index (ds "data").azs 0}}
@@ -38,13 +38,13 @@ product-properties:
   .properties.plan2_selector.active.master_instances:
     value: "1"
   .properties.plan2_selector.active.master_vm_type:
-    value: m4.large
+    value: m5.large
   .properties.plan2_selector.active.worker_instances:
     value: "3"
   .properties.plan2_selector.active.worker_vm_type:
-    value: t2.medium
+    value: t3.medium
   .properties.plan2_selector.active.errand_vm_type:
-    value: t2.micro
+    value: t3.micro
   .properties.plan2_selector.active.master_az_placement:
     value:
     - {{index (ds "data").azs 0}}

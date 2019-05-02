@@ -93,7 +93,7 @@ networks-configuration:
 resource-configuration:
   compilation:
     instance_type:
-      id: c4.xlarge
+      id: c5.xlarge
 vmextensions-configuration:
   - name: pks-api-lb-security-groups
     cloud_properties:

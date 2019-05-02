@@ -41,4 +41,4 @@ run:
         /home/dehydrated/dehydrated --accept-terms -c -n -f ${PWD}/config
 
         tar cvfz ${PWD}/certificates/certificates.tgz ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/
-        ls -la ${PWD}/certificates/certificates.tgz
+        ls -lah ${PWD}/certificates/

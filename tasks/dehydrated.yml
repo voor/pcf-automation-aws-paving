@@ -23,24 +23,25 @@ run:
         set -eux
 
         ls -la ${PWD}/certificates/
-        mkdir -p ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/
+        mkdir -p ${PWD}/certificates/ssl/
 
-        echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > domain" > ${PWD}/domains.txt
+        echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > private" > ${PWD}/domains.txt
 
         cat ${PWD}/domains.txt
 
         echo "DOMAINS_TXT=${PWD}/domains.txt
+        CA="https://acme-staging-v02.api.letsencrypt.org/directory"
         CHALLENGETYPE=dns-01
         HOOK=/home/dehydrated/hook.sh
         HOOK_CHAIN=no
-        CHAINCACHE=${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/chains
-        CERTDIR=${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/certs
-        ACCOUNTDIR=${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/accounts" >> ${PWD}/config
+        CHAINCACHE=${PWD}/certificates/ssl/chains
+        CERTDIR=${PWD}/certificates/ssl/
+        ACCOUNTDIR=${PWD}/certificates/ssl/accounts" >> ${PWD}/config
 
         cat ${PWD}/config
 
         /home/dehydrated/dehydrated --accept-terms -c -n -f ${PWD}/config
 
         mkdir -p ${PWD}/updated-certificates
-        tar cvfz ${PWD}/updated-certificates/certificates.tgz ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/ -C ${PWD}/certificates/
+        tar cvfz ${PWD}/updated-certificates/certificates.tgz -C ${PWD}/certificates/ssl/ private/ accounts/
         ls -lah ${PWD}/certificates/ ${PWD}/updated-certificates

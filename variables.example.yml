@@ -4,27 +4,27 @@ platform-automation-version: 2\.(.*)
 github:
   repos:
     configuration:
-      uri: "git@github.com:voor/some-private-repository-for-your-stuff"
+      uri: "git@github.com:USER/pcf-config.git"
     pcf-automation-source:
-      uri: "https://github.com/voor/pcf-automation-aws-paving.git"
+      uri: "https://github.com/USER/pcf-automation-aws-paving.git"
+      branch: "master"
+    terraforming-aws:
+      uri: "https://github.com/USER/terraforming-aws.git"
+      branch: "master"
 
 buckets:
-  terraform: "my-little-bucket"
-  pivnet_products: "my-little-bucket-friend"
-  installation: "my-little-bucket-other-friend"
-
+  pivnet_products: "your-pivnet-products"
+  installation: "your-installation" # MUST HAVE VERSIONING ENABLED
 terraform:
   aws:
     dns_suffix: "example.com"
     availability_zones: ["us-east-1a", "us-east-1c"]
     hosted_zone: "example.com"
     rds_instance_count: 0
-    cluster_name: "this-is-a-value-that-is-not-required"
 
 pcf:
   env_name: "dev"
   pipeline_email: "concourse@example.com"
   pipeline_name: "PCF Platform Automation"
-
 opsman:
   username: "admin"

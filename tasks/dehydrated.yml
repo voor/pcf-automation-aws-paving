@@ -8,7 +8,7 @@ image_resource:
 inputs:
   - name: certificates
 outputs:
-  - name: certificates
+  - name: updated-certificates
 params:
   AWS_ACCESS_KEY_ID:
   AWS_SECRET_ACCESS_KEY:
@@ -41,5 +41,6 @@ run:
 
         /home/dehydrated/dehydrated --accept-terms -c -n -f ${PWD}/config
 
-        tar cvfz ${PWD}/certificates/certificates.tgz ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/
-        ls -lah ${PWD}/certificates/
+        mkdir -p ${PWD}/updated-certificates
+        tar cvfz ${PWD}/updated-certificates/certificates.tgz ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/
+        ls -lah ${PWD}/certificates/ ${PWD}/updated-certificates

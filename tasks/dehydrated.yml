@@ -23,17 +23,20 @@ run:
 
         mkdir -p ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/{chains,certs,accounts}
 
-        echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > domain" > domains.txt
+        echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > domain" > ${PWD}/domains.txt
 
-        export DOMAINS_TXT="$PWD/domains.txt"
-        export CHALLENGETYPE="dns-01"
-        export HOOK=/home/dehydrated/hook.sh
-        export HOOK_CHAIN="no"
-        export LOCKFILE="/tmp/lock"
-        export CHAINCACHE="${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/chains"
-        export CERTDIR="${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/certs"
-        export ACCOUNTDIR="${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/accounts"
+        cat ${PWD}/domains.txt
 
-        /home/dehydrated/dehydrated --accept-terms -c
+        echo "DOMAINS_TXT=${PWD}/domains.txt" >> ${PWD}/config
+        echo "CHALLENGETYPE=dns-01" >> ${PWD}/config
+        echo "HOOK=/home/dehydrated/hook.sh" >> ${PWD}/config
+        echo "HOOK_CHAIN=no >> ${PWD}/config
+        echo "CHAINCACHE=${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/chains" >> ${PWD}/config
+        echo "CERTDIR=${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/certs" >> ${PWD}/config
+        echo "ACCOUNTDIR=${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/accounts" >> ${PWD}/config
+
+        cat ${PWD}/config
+
+        /home/dehydrated/dehydrated --accept-terms -c -n -f ${PWD}/config
 
         tar cvfz certificates/certificates.tgz certificates/${ENV_NAME}.${DNS_SUFFIX}/

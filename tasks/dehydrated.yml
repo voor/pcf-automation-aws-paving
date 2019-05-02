@@ -21,13 +21,13 @@ run:
     - |
         set -euxo pipefail
 
-        mkdir -p certificates/${ENV_NAME}.${DNS_SUFFIX}/{chains,certs,accounts}
+        mkdir -p ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/{chains,certs,accounts}
 
         echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > domain" > domains.txt
 
         export DOMAINS_TXT="$PWD/domains.txt"
         export CHALLENGETYPE="dns-01"
-        export HOOK="./hook.sh"
+        export HOOK=/home/dehydrated/hook.sh
         export HOOK_CHAIN="no"
         export LOCKFILE="/tmp/lock"
         export CHAINCACHE="${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/chains"

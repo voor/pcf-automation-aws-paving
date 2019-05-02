@@ -11,18 +11,21 @@ inputs:
 params:
   AWS_ACCESS_KEY_ID:
   AWS_SECRET_ACCESS_KEY:
+  ENV_NAME:
   DNS_SUFFIX:
 run:
   path: /bin/sh
+  dir: 
   args:
     - -c
     - |
-        set -eu
+        set -euxo pipefail
 
         mkdir -p certificates/${ENV_NAME}.${DNS_SUFFIX}/{chains,certs,accounts}
 
         echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > domain" > domains.txt
 
+        export DOMAINS_TXT="$PWD/domains.txt"
         export CHALLENGETYPE="dns-01"
         export HOOK="./hook.sh"
         export HOOK_CHAIN="no"

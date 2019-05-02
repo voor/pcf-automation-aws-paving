@@ -21,6 +21,8 @@ run:
     - |
         set -eux
 
+        if [ -f "${PWD}/certificates/certificates.tgz" ]; then tar xvf ${PWD}/certificates/certificates.tgz; fi
+        
         mkdir -p ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/{chains,certs,accounts}
 
         echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > domain" > ${PWD}/domains.txt

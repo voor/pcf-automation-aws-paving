@@ -19,7 +19,7 @@ run:
   args:
     - -c
     - |
-        set -euxo pipefail
+        set -eux
 
         mkdir -p ${PWD}/certificates/${ENV_NAME}.${DNS_SUFFIX}/{chains,certs,accounts}
 

@@ -184,8 +184,6 @@ jobs:
     public: false
     plan:
       - aggregate:
-          - get: pcf-automation-source
-            trigger: true
           - get: certificates
             params:
               unpack: true

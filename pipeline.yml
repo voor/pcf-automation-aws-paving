@@ -651,6 +651,7 @@ jobs:
     public: false
     plan:
       - aggregate:
+          - get: env-state-aws
           - get: pcf-automation-source
             trigger: false
           - get: platform-automation-image
@@ -694,6 +695,7 @@ jobs:
             trigger: false
           - get: configuration
           - get: env-state-aws
+            passed: [destroy-installation]
       - put: env-state-aws
         params:
           terraform_source: terraforming-aws/terraforming-pks

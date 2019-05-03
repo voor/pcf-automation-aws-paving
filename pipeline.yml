@@ -226,12 +226,6 @@ jobs:
           - get: pcf-automation-source
             trigger: true
           - get: configuration
-          - get: env-state-aws
-            passed: [terraforming-aws]
-          - get: certificates
-            params:
-              unpack: true
-            passed: [letsencrypt-certificates]
       - task: add-new-templates
         input_mapping:
           config: configuration
@@ -502,6 +496,16 @@ jobs:
           STATE_FILE: ((pcf.env_name))/state/state.yml
           OPSMAN_CONFIG_FILE: ((pcf.env_name))/config/opsman.yml
         ensure: *make-state-commit
+      - task: configure-director-ssl
+        image: platform-automation-image
+        file: pcf-automation-source/tasks/configure-director-ssl.yml
+        input_mapping:
+          config: configuration-interpolated
+          env: configuration-interpolated
+        params:
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+          CERTIFICATE_PEM: ((pcf.env_name))/config/ops_manager_fullchain.pem
+          PRIVATE_KEY_PEM: ((pcf.env_name))/config/ops_manager_privkey.pem
       - task: apply-director-changes
         image: platform-automation-image
         file: platform-automation-tasks/tasks/apply-director-changes.yml
@@ -604,6 +608,7 @@ jobs:
             params:
               unpack: true
             passed: [letsencrypt-certificates]
+            trigger: true
       - task: interpolate-config
         <<: *interpolate
       - task: configure-product

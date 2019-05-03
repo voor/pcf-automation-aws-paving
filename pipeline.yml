@@ -682,7 +682,6 @@ jobs:
           state: configuration
           config: configuration-interpolated
         params:
-          VARS_FILES: config/((pcf.env_name))/config/opsman-vars.yml
           STATE_FILE: ((pcf.env_name))/state/state.yml
           OPSMAN_CONFIG_FILE: ((pcf.env_name))/config/opsman.yml
 

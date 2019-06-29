@@ -128,6 +128,7 @@ resources:
       endpoint: ((buckets.endpoints.installation))
       region_name: ((region))
       regexp: ((pcf.env_name))/certificates-(.*).tgz
+      initial_path: ((pcf.env_name))/certificates-0.0.0.tgz
 
   # configurations
   - name: pcf-automation-source
@@ -210,11 +211,12 @@ jobs:
     public: false
     plan:
       - aggregate:
-          - get: certificates
-            params:
-              unpack: true
-          - get: daily-trigger
-            trigger: true
+        - get: pcf-automation-source
+        - get: certificates
+          params:
+            unpack: true
+        - get: daily-trigger
+          trigger: true
       - task: dehydrated
         file: pcf-automation-source/tasks/dehydrated.yml
         input_mapping:

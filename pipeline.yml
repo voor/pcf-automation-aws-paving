@@ -228,6 +228,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ((concourse.secret_access_key))
           ENV_NAME: ((pcf.env_name))
           DNS_SUFFIX: ((terraform.aws.dns_suffix))
+          CA: ((dehydrated.ca))
+          CURL_OPTS: ((dehydrated.curl_opts))
       - put: certificates
         params:
           file: updated-certificates/certificates*.tgz

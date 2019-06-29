@@ -1,0 +1,14 @@
+secretGenerator:
+- name: concourse
+  files:
+  - pcf-config_deploy_rsa_private_key
+  literals:
+  - access_key_id=
+  - secret_access_key=
+  - pivnet-api-token=
+  - opsman_password=
+  - opsman_decryption-passphrase=
+  - pivnet_products_bucket_access_key_id=
+  - pivnet_products_bucket_secret_access_key=
+  - installation_bucket_access_key_id=
+  - installation_bucket_secret_access_key=

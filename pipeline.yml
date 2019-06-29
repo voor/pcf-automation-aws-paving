@@ -4,20 +4,20 @@ resource_types:
     type: docker-image
     source:
       repository: ljfranklin/terraform-resource
-      tags: latest
+      tag: 0.11.14
 
   - name: pivnet
     type: docker-image
     source:
       repository: pivotalcf/pivnet-resource
-      tags: latest-final
+      tag: latest-final
 
 resources:
   - name: platform-automation-pivnet
     type: pivnet
     icon: cloud-download-outline
     source:
-      api_token: ((pivnet-api-token))
+      api_token: ((concourse.pivnet-api-token))
       product_slug: platform-automation
       product_version: ((platform-automation-version))
       sort_by: semver
@@ -30,6 +30,12 @@ resources:
       backend_config:
         bucket: ((buckets.installation))
         key: terraform.tfstate
+        endpoint: ((buckets.endpoints.installation))
+        access_key: ((concourse.installation_bucket_access_key_id))
+        secret_key: ((concourse.installation_bucket_secret_access_key))
+        profile: "not_default"
+        skip_credentials_validation: ((buckets.minio))
+        force_path_style: ((buckets.minio))
       vars:
         env_name: ((pcf.env_name))
         dns_suffix: ((terraform.aws.dns_suffix))
@@ -40,8 +46,8 @@ resources:
 
         ops_manager_vm: false
       env:
-        AWS_ACCESS_KEY_ID: ((access_key_id))
-        AWS_SECRET_ACCESS_KEY: ((secret_access_key))
+        AWS_ACCESS_KEY_ID: ((concourse.access_key_id))
+        AWS_SECRET_ACCESS_KEY: ((concourse.secret_access_key))
         AWS_DEFAULT_REGION: ((region))
 
   # buckets
@@ -51,8 +57,9 @@ resources:
     icon: folder-google-drive
     source:
       bucket: ((buckets.pivnet_products))
-      access_key_id: ((access_key_id))
-      secret_access_key: ((secret_access_key))
+      access_key_id: ((concourse.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((concourse.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: platform-automation-tasks-((platform-automation-version)).zip
 
@@ -61,8 +68,9 @@ resources:
     icon: folder-google-drive
     source:
       bucket: ((buckets.pivnet_products))
-      access_key_id: ((access_key_id))
-      secret_access_key: ((secret_access_key))
+      access_key_id: ((concourse.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((concourse.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: platform-automation-image-((platform-automation-version)).tgz
 
@@ -71,8 +79,9 @@ resources:
     icon: folder-google-drive
     source:
       bucket: ((buckets.pivnet_products))
-      access_key_id: ((access_key_id))
-      secret_access_key: ((secret_access_key))
+      access_key_id: ((concourse.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((concourse.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: ops-manager-aws-(.*).yml
 
@@ -81,8 +90,9 @@ resources:
     icon: folder-google-drive
     source:
       bucket: ((buckets.pivnet_products))
-      access_key_id: ((access_key_id))
-      secret_access_key: ((secret_access_key))
+      access_key_id: ((concourse.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((concourse.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: pivotal-container-service-(.*).pivotal
 
@@ -91,8 +101,9 @@ resources:
     icon: folder-google-drive
     source:
       bucket: ((buckets.pivnet_products))
-      access_key_id: ((access_key_id))
-      secret_access_key: ((secret_access_key))
+      access_key_id: ((concourse.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((concourse.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: pks-stemcell/light-bosh-stemcell-(.*)-aws.*\.tgz #light-bosh-stemcell-170.15-aws-xen-hvm-ubuntu-xenial-go_agent.tgz
 
@@ -101,21 +112,22 @@ resources:
     icon: book-lock
     source:
       bucket: ((buckets.installation))
-      access_key_id: ((access_key_id))
-      secret_access_key: ((secret_access_key))
+      access_key_id: ((concourse.installation_bucket_access_key_id))
+      secret_access_key: ((concourse.installation_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.installation))
       region_name: ((region))
-      versioned_file: ((pcf.env_name))/installation.zip
+      regexp: ((pcf.env_name))/installation-(.*).zip
 
   - name: certificates
     type: s3
     icon: certificate
     source:
       bucket: ((buckets.installation))
-      access_key_id: ((access_key_id))
-      secret_access_key: ((secret_access_key))
+      access_key_id: ((concourse.installation_bucket_access_key_id))
+      secret_access_key: ((concourse.installation_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.installation))
       region_name: ((region))
-      versioned_file: ((pcf.env_name))/certificates.tgz
-      initial_version: 0.0.0
+      regexp: ((pcf.env_name))/certificates-(.*).tgz
 
   # configurations
   - name: pcf-automation-source
@@ -136,7 +148,7 @@ resources:
     type: git
     icon: github-circle
     source:
-      private_key: ((pcf-config_deploy_rsa.private_key))
+      private_key: ((concourse.pcf-config_deploy_rsa_private_key))
       uri: ((github.repos.configuration.uri))
       branch: master
 
@@ -164,12 +176,12 @@ interpolate: &interpolate
     interpolated-config: configuration-interpolated
   params:
     ENV_NAME: ((pcf.env_name))
-    PIVNET_API_TOKEN: ((pivnet-api-token))
-    AWS_ACCESS_KEY_ID: ((access_key_id))
-    AWS_SECRET_ACCESS_KEY: ((secret_access_key))
+    PIVNET_API_TOKEN: ((concourse.pivnet-api-token))
+    AWS_ACCESS_KEY_ID: ((concourse.access_key_id))
+    AWS_SECRET_ACCESS_KEY: ((concourse.secret_access_key))
     OM_USERNAME: ((opsman.username))
-    OM_PASSWORD: ((opsman_password))
-    OM_DECRYPTION_PASSPHRASE: ((opsman_decryption-passphrase))
+    OM_PASSWORD: ((concourse.opsman_password))
+    OM_DECRYPTION_PASSPHRASE: ((concourse.opsman_decryption-passphrase))
 
 make-state-commit: &make-state-commit
   do:
@@ -210,8 +222,8 @@ jobs:
         output_mapping:
           certificates: updated-certificates
         params:
-          AWS_ACCESS_KEY_ID: ((access_key_id))
-          AWS_SECRET_ACCESS_KEY: ((secret_access_key))
+          AWS_ACCESS_KEY_ID: ((concourse.access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((concourse.secret_access_key))
           ENV_NAME: ((pcf.env_name))
           DNS_SUFFIX: ((terraform.aws.dns_suffix))
       - put: certificates

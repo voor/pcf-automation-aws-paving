@@ -13,8 +13,12 @@ github:
       branch: "master"
 
 buckets:
+  minio: false # Default
   pivnet_products: "your-pivnet-products"
-  installation: "your-installation" # MUST HAVE VERSIONING ENABLED
+  installation: "your-installation"
+  endpoints:
+    pivnet_products: https://s3.example.com
+    installation: https://s3.example.com
 terraform:
   aws:
     dns_suffix: "example.com"

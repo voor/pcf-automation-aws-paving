@@ -1,7 +1,7 @@
 # Platform Automation with Infrastructure Paving
 
 This repo contains a [concourse](https://concourse-ci.org/) pipeline and tasks to automatically deploy [Pivotal Container Service (PKS)](https://pivotal.io/platform/pivotal-container-service) on AWS, including _optional_ paving the environment using Terraform.
-This utilizes the Control Plane Concourse, which has also been paved by Terraform (see [here](https://github.com/voor/terraforming-aws/blob/large-changes/terraforming-control-plane/README.md) if you want to set that up), which securely links credentials stored in credhub.
+This utilizes *either* Control Plane Concourse or Kubernetes Concourse with Kubernetes backed secrets, which has also been paved by Terraform (see [here](https://github.com/voor/terraforming-aws/blob/large-changes/terraforming-control-plane/README.md) if you want to set that up), which securely links credentials stored in credhub.
 It is using a fork of [terraforming-aws](https://github.com/voor/terraforming-aws), which modifies some behaviors for PKS and [Platform Automation](http://docs-platform-automation.cfapps.io/platform-automation/v2.0/index.html) to do so.
 
 ## Reqirements
@@ -26,7 +26,11 @@ Either create a new AWS account, or use an existing one.  You will need a "super
 
 ### Pave Concourse
 
+#### Option 1
 You will need to head over to [terraforming control plane](https://github.com/voor/terraforming-aws/tree/remove-credentials-and-encourage-defaults/terraforming-control-plane) and start there.  This will get you your running Concourse, Credhub, UAA, and database all ready to go.
+
+#### Option 2
+Install Concourse on Kubernetes
 
 ### Create Two S3 Buckets
 

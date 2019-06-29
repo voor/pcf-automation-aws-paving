@@ -33,8 +33,8 @@ run:
 
         echo "DOMAINS_TXT=${PWD}/domains.txt
         # Remove this next line to get actual certs.
-        CA=${CA}
-        CURL_OPTS=${CURL_OPTS}
+        CA='${CA}'
+        CURL_OPTS='${CURL_OPTS}'
         CHALLENGETYPE=dns-01
         HOOK=/home/dehydrated/hook.sh
         HOOK_CHAIN=no

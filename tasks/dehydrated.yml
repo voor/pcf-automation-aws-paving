@@ -32,7 +32,7 @@ run:
         echo "DOMAINS_TXT=${PWD}/domains.txt
         # Remove this next line to get actual certs.
         CA="https://acme-staging.api.letsencrypt.org/directory"
-        CURL_OPTS="--verbose"
+        CURL_OPTS=" --verbose --resolve acme-staging.api.letsencrypt.org:443:23.55.128.36 "
         CHALLENGETYPE=dns-01
         HOOK=/home/dehydrated/hook.sh
         HOOK_CHAIN=no

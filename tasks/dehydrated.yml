@@ -24,6 +24,9 @@ run:
     - |
         set -eux
 
+        dig
+        ip -4 addr
+
         ls -la ${PWD}/certificates/
         mkdir -p ${PWD}/certificates/ssl/
 

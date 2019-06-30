@@ -3,7 +3,7 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: voor/dnsutils
+    repository: voor/dehydrated-route53
     tag: latest
 inputs:
   - name: certificates

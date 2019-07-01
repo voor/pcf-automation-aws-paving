@@ -248,7 +248,7 @@ jobs:
           CURL_OPTS: ((dehydrated.curl_opts))
       - put: certificates-version
         params:
-          file: certificates-version/certificates-version.txt
+          file: certificates-version/version
       - put: certificates
         params:
           file: updated-certificates/certificates*.tgz

@@ -34,7 +34,6 @@ run:
         cat ${PWD}/domains.txt
 
         echo "DOMAINS_TXT=${PWD}/domains.txt
-        # Remove this next line to get actual certs.
         CA=${CA}
         CURL_OPTS='${CURL_OPTS}'
         CHALLENGETYPE=dns-01
@@ -49,5 +48,5 @@ run:
         /home/dehydrated/dehydrated --accept-terms -c -n -f ${PWD}/config
 
         mkdir -p ${PWD}/updated-certificates
-        tar cvfz ${PWD}/updated-certificates/certificates.tgz -C ${PWD}/certificates/ ssl/
+        tar cvfz ${PWD}/updated-certificates/certificates-$(certificates-version/version).tgz -C ${PWD}/certificates/ ssl/
         ls -lah ${PWD}/certificates/ ${PWD}/updated-certificates

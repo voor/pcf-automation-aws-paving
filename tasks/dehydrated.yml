@@ -7,6 +7,7 @@ image_resource:
     tag: latest
 inputs:
   - name: certificates
+  - name: certificates-version
 outputs:
   - name: updated-certificates
 params:
@@ -25,6 +26,7 @@ run:
         set -eux
 
         ls -la ${PWD}/certificates/
+        ls -la ${PWD}/certificates-version/
         mkdir -p ${PWD}/certificates/ssl/
 
         echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > private" > ${PWD}/domains.txt

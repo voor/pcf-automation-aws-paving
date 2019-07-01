@@ -130,6 +130,18 @@ resources:
       regexp: ((pcf.env_name))/certificates-(.*).tgz
       initial_path: ((pcf.env_name))/certificates-0.0.0.tgz
 
+  - name: certificates-version
+    type: semver
+    icon: change_history
+    source:
+      initial_version: 0.0.0
+      key: ((pcf.env_name))/certificates-version.txt
+      bucket: ((buckets.installation))
+      access_key_id: ((concourse.installation_bucket_access_key_id))
+      secret_access_key: ((concourse.installation_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.installation))
+      region_name: ((region))
+
   # configurations
   - name: pcf-automation-source
     type: git
@@ -210,17 +222,21 @@ jobs:
     serial: true
     public: false
     plan:
-      - aggregate:
-        - get: pcf-automation-source
-        - get: certificates
-          params:
-            unpack: true
-        - get: daily-trigger
-          trigger: true
+      - in_parallel:
+          - get: certificates-version
+            params:
+              bump: minor
+          - get: pcf-automation-source
+          - get: certificates
+            params:
+              unpack: true
+          - get: daily-trigger
+            trigger: true
       - task: dehydrated
         file: pcf-automation-source/tasks/dehydrated.yml
         input_mapping:
           certificates: certificates
+          certificates-version: certificates-version
         output_mapping:
           certificates: updated-certificates
         params:
@@ -230,6 +246,9 @@ jobs:
           DNS_SUFFIX: ((terraform.aws.dns_suffix))
           CA: ((dehydrated.ca))
           CURL_OPTS: ((dehydrated.curl_opts))
+      - put: certificates-version
+        params:
+          file: certificates-version/certificates-version.txt
       - put: certificates
         params:
           file: updated-certificates/certificates*.tgz
@@ -250,7 +269,7 @@ jobs:
     serial: true
     public: false
     plan:
-      - aggregate:
+      - in_parallel:
           - get: pcf-automation-source
             trigger: true
           - get: configuration
@@ -300,7 +319,7 @@ jobs:
     plan:
       - get: platform-automation-pivnet
         trigger: true
-      - aggregate:
+      - in_parallel:
           - put: platform-automation-tasks
             params:
               file: platform-automation-pivnet/*tasks*.zip
@@ -313,7 +332,7 @@ jobs:
     serial: true
     public: false
     plan:
-      - aggregate:
+      - in_parallel:
           - get: platform-automation-image
             params:
               unpack: true
@@ -336,14 +355,14 @@ jobs:
           VARS_FILES: config/((pcf.env_name))/download-product-configs/vars.yml
         input_mapping:
           config: configuration-interpolated
-      - aggregate:
+      - in_parallel:
           - put: opsman-image
             params:
               file: downloaded-product/*
 
   - name: fetch-pks
     plan:
-      - aggregate:
+      - in_parallel:
           - get: platform-automation-image
             params:
               unpack: true
@@ -368,7 +387,7 @@ jobs:
           config: configuration-interpolated
         output_mapping:
           downloaded-stemcell: pks-stemcell
-      - aggregate:
+      - in_parallel:
           - put: pks-product
             params:
               file: downloaded-product/*.pivotal
@@ -382,7 +401,7 @@ jobs:
     serial: true
     serial_groups: [install]
     plan:
-      - aggregate:
+      - in_parallel:
           - get: platform-automation-image
             params:
               unpack: true
@@ -454,7 +473,7 @@ jobs:
   - name: export-installation
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
           - get: daily-trigger
             trigger: true
           - get: platform-automation-image
@@ -488,7 +507,7 @@ jobs:
     serial: true
     serial_groups: [install]
     plan:
-      - aggregate:
+      - in_parallel:
           - get: one-time-trigger
             passed: [install-opsman]
           - get: platform-automation-image
@@ -545,7 +564,7 @@ jobs:
   - name: upload-and-stage-product
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
           - get: platform-automation-image
             params:
               unpack: true
@@ -586,7 +605,7 @@ jobs:
   - name: upload-stemcell
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
           - get: platform-automation-image
             params:
               unpack: true
@@ -619,7 +638,7 @@ jobs:
   - name: configure-product
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
           - get: platform-automation-image
             params:
               unpack: true
@@ -652,7 +671,7 @@ jobs:
   - name: apply-product-changes
     serial: true
     plan:
-      - aggregate:
+      - in_parallel:
           - get: platform-automation-image
             params:
               unpack: true
@@ -683,7 +702,7 @@ jobs:
     serial: true
     public: false
     plan:
-      - aggregate:
+      - in_parallel:
           - get: env-state-aws
           - get: pcf-automation-source
             trigger: false
@@ -722,7 +741,7 @@ jobs:
     serial: true
     public: false
     plan:
-      - aggregate:
+      - in_parallel:
           - get: terraforming-aws
             trigger: false
           - get: configuration

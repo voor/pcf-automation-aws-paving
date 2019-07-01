@@ -345,6 +345,9 @@ jobs:
           - get: env-state-aws
           - get: daily-trigger
             trigger: true
+          - get: certificates
+            params:
+              unpack: true
       - task: interpolate-config
         <<: *interpolate
       - task: download-opsman-image
@@ -375,6 +378,9 @@ jobs:
           - get: env-state-aws
           - get: daily-trigger
             trigger: true
+          - get: certificates
+            params:
+              unpack: true
       - task: interpolate-config
         <<: *interpolate
       - task: download-pks-product-and-stemcell

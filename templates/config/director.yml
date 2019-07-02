@@ -21,13 +21,13 @@ properties-configuration:
     region: {{(ds "data").region}}
 network-assignment:
   network:
-    name: ops-manager
+    name: infrastructure
   singleton_availability_zone:
     name: {{index (ds "data").azs 0}}
 networks-configuration:
   icmp_checks_enabled: false
   networks:
-  - name: ops-manager
+  - name: infrastructure
     subnets:
     {{range $i, $a := (ds "data").infrastructure_subnet_cidrs}}
     - availability_zone_names:

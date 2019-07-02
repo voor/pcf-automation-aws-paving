@@ -19,6 +19,8 @@ product-properties:
 {{ indent 10 (include "privkey") }}
   .properties.pks_api_hostname:
     value: {{(ds "data").pks_api_endpoint}}
+  .properties.plan1_selector.active.name:
+    value: "small"
   .properties.plan1_selector.active.master_vm_type:
     value: t3.micro
   .properties.plan1_selector.active.worker_vm_type:
@@ -33,8 +35,12 @@ product-properties:
     {{range (ds "data").azs}}
     - {{.}}
     {{end}}
+  .properties.plan1_selector.active.allow_privileged_containers:
+    value: enabled
   .properties.plan2_selector:
     value: "Plan Active"
+  .properties.plan2_selector.active.name:
+    value: "medium"
   .properties.plan2_selector.active.master_instances:
     value: "1"
   .properties.plan2_selector.active.master_vm_type:
@@ -56,7 +62,32 @@ product-properties:
   .properties.plan2_selector.active.allow_privileged_containers: 
     value: true
   .properties.plan3_selector:
-    value: "Plan Inactive"
+    value: "Plan Active"
+  .properties.plan3_selector.active.name:
+    value: "psp"
+  .properties.plan3_selector.active.master_instances:
+    value: "1"
+  .properties.plan3_selector.active.master_vm_type:
+    value: m5.large
+  .properties.plan3_selector.active.worker_instances:
+    value: "3"
+  .properties.plan3_selector.active.worker_vm_type:
+    value: t3.medium
+  .properties.plan3_selector.active.errand_vm_type:
+    value: t3.micro
+  .properties.plan3_selector.active.master_az_placement:
+    value:
+    - {{index (ds "data").azs 0}}
+  .properties.plan3_selector.active.worker_az_placement:
+    value:
+    {{range (ds "data").azs}}
+    - {{.}}
+    {{end}}
+  .properties.plan3_selector.active.allow_privileged_containers: 
+    value: true
+  .properties.plan3_selector.active.admission_plugins: 
+    value:
+    - pod_security_policy
   .properties.cloud_provider:
     value: AWS
   .properties.cloud_provider.aws.iam_instance_profile_master:

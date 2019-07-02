@@ -10,8 +10,6 @@ properties-configuration:
 {{indent 6 (ds "data").ssl_cert}}
 {{end}}
   iaas_configuration:
-    access_key_id: {{(ds "data").ops_manager_iam_user_access_key}}
-    secret_access_key: {{(ds "data").ops_manager_iam_user_secret_key}}
     iam_instance_profile: {{(ds "data").ops_manager_iam_instance_profile_name}}
     vpc_id: {{(ds "data").vpc_id}}
     security_group: {{(ds "data").vms_security_group_id}}

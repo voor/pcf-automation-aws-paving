@@ -523,10 +523,10 @@ jobs:
             params:
               unpack: true
           - get: opsman-image
+            trigger: true
           - get: installation
             passed: [export-installation]
           - get: configuration
-            trigger: true
           - get: pcf-automation-source
           - get: env-state-aws
           - get: certificates
@@ -580,9 +580,7 @@ jobs:
           - get: pks-product
             trigger: true
           - get: configuration
-            passed:
-              - upgrade-opsman
-            trigger: true
+            passed: [upgrade-opsman]
           - get: pcf-automation-source
           - get: env-state-aws
           - get: certificates
@@ -621,9 +619,7 @@ jobs:
           - get: pks-stemcell
             trigger: true
           - get: configuration
-            passed:
-              - upgrade-opsman
-            trigger: true
+            passed: [upgrade-opsman]
           - get: pcf-automation-source
           - get: env-state-aws
           - get: certificates

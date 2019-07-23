@@ -2,35 +2,36 @@
 
 # Secret related:
 # You can comment these out if you store them directly in credhub, or variable them in to wherever they are.
-pivnet_api_token: ((concourse.pivnet-api-token))
+secrets:
+  opsman_password: ((concourse.opsman_password))
+  opsman_decryption-passphrase: ((concourse.opsman_decryption-passphrase))
 
-access_key_id: ((concourse.access_key_id))
-secret_access_key: ((concourse.secret_access_key))
+  pcf-config_deploy_rsa_private_key: ((concourse.pcf-config_deploy_rsa_private_key))
 
-pivnet_products_bucket_access_key_id: ((concourse.pivnet_products_bucket_access_key_id))
-pivnet_products_bucket_secret_access_key: ((concourse.pivnet_products_bucket_secret_access_key))
+  pivnet_api_token: ((concourse.pivnet-api-token))
 
-installation_bucket_access_key_id: ((concourse.installation_bucket_access_key_id))
-installation_bucket_secret_access_key: ((concourse.installation_bucket_secret_access_key))
+  access_key_id: ((concourse.access_key_id))
+  secret_access_key: ((concourse.secret_access_key))
 
-## Leave These next 4 lines if you're using the same AWS credentials for all operations:
-# pivnet_products_bucket_access_key_id: ((access_key_id))
-# pivnet_products_bucket_secret_access_key: ((secret_access_key))
-# installation_bucket_access_key_id: ((access_key_id))
-# installation_bucket_secret_access_key: ((secret_access_key))
+  ## Optional to change where the other buckets accounts are located.
+  pivnet_products_bucket_access_key_id: ((concourse.pivnet_products_bucket_access_key_id))
+  pivnet_products_bucket_secret_access_key: ((concourse.pivnet_products_bucket_secret_access_key))
+
+  installation_bucket_access_key_id: ((concourse.installation_bucket_access_key_id))
+  installation_bucket_secret_access_key: ((concourse.installation_bucket_secret_access_key))
 
 # Regular variables:
 region: "us-east-1"
-platform-automation-version: 2\.(.*)
+platform-automation-version: 3\.(.*)
 github:
   repos:
     configuration:
-      uri: "git@github.com:EXAMPLE/pcf-config.git" # Private Repository as it will contain the instance ID of your Ops Manager.
+      uri: "git@gitlab.example.com:USER/aws-pcf-config.git" # Change this
     pcf-automation-source:
-      uri: "https://github.com/voor/pcf-automation-aws-paving.git" # Change This
-      branch: "k8s"
+      uri: "https://github.com/voor/pcf-automation-aws-paving.git"
+      branch: "master"
     terraforming-aws:
-      uri: "https://github.com/pivotal-cf/terraforming-aws" # Leave this or change it for stability
+      uri: "https://github.com/pivotal-cf/terraforming-aws"
       branch: "master"
 
 buckets:
@@ -56,5 +57,5 @@ opsman:
   
 dehydrated:
   curl_opts: ""
-  # ca: "https://acme-v02.api.letsencrypt.org/directory"
-  ca: "https://acme-staging-v02.api.letsencrypt.org/directory"
+  ca: "https://acme-v02.api.letsencrypt.org/directory"
+  # ca: "https://acme-staging-v02.api.letsencrypt.org/directory"

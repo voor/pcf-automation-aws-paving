@@ -13,18 +13,24 @@ pivnet_products_bucket_secret_access_key: ((concourse.pivnet_products_bucket_sec
 installation_bucket_access_key_id: ((concourse.installation_bucket_access_key_id))
 installation_bucket_secret_access_key: ((concourse.installation_bucket_secret_access_key))
 
+## Leave These next 4 lines if you're using the same AWS credentials for all operations:
+# pivnet_products_bucket_access_key_id: ((access_key_id))
+# pivnet_products_bucket_secret_access_key: ((secret_access_key))
+# installation_bucket_access_key_id: ((access_key_id))
+# installation_bucket_secret_access_key: ((secret_access_key))
+
 # Regular variables:
 region: "us-east-1"
 platform-automation-version: 2\.(.*)
 github:
   repos:
     configuration:
-      uri: "git@github.com:EXAMPLE/pcf-config.git"
+      uri: "git@github.com:EXAMPLE/pcf-config.git" # Private Repository as it will contain the instance ID of your Ops Manager.
     pcf-automation-source:
-      uri: "https://github.com/voor/pcf-automation-aws-paving.git"
+      uri: "https://github.com/voor/pcf-automation-aws-paving.git" # Change This
       branch: "k8s"
     terraforming-aws:
-      uri: "https://github.com/pivotal-cf/terraforming-aws"
+      uri: "https://github.com/pivotal-cf/terraforming-aws" # Leave this or change it for stability
       branch: "master"
 
 buckets:

@@ -1,2 +1,5 @@
 variables.yml
 credhub-secrets.yml
+kustomization.yml
+pcf-config_deploy_rsa_private_key
+secrets.yml

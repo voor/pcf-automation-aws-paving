@@ -63,6 +63,6 @@ If you are using Concourse on Kubernetes, then you can store the initial credent
 ```
 # Login from web UI, this usually works a lot easier and is more secure anyway.
 fly --target control-plane login --concourse-url ${control_plane_domain}
-fly --target control-plane set-pipeline -p pcf-platform-automation -c pipeline.yml -l variables.yml --verbose
-fly --target control-plane unpause-pipeline -p pcf-platform-automation
+fly --target control-plane set-pipeline -p aws-platform-automation -c pipeline.yml -l variables.yml --verbose
+fly --target control-plane unpause-pipeline -p aws-platform-automation
 ```

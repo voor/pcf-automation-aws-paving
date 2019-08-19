@@ -22,9 +22,9 @@ product-properties:
   .properties.plan1_selector.active.name:
     value: "small"
   .properties.plan1_selector.active.master_vm_type:
-    value: t3.micro
+    value: m5.large
   .properties.plan1_selector.active.worker_vm_type:
-    value: t3.micro
+    value: t3.medium
   .properties.plan1_selector.active.errand_vm_type:
     value: t3.micro
   .properties.plan1_selector.active.master_az_placement:

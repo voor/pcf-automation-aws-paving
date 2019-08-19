@@ -259,7 +259,6 @@ jobs:
     public: false
     plan:
       - get: terraforming-aws
-        trigger: true
       - put: env-state-aws
         params:
           env_name: ((pcf.env_name))

@@ -8,6 +8,8 @@ secrets:
 
   pcf-config_deploy_rsa_private_key: ((concourse.pcf-config_deploy_rsa_private_key))
 
+  customer_number: your-customer-number
+
   pivnet_api_token: ((concourse.pivnet-api-token))
 
   access_key_id: ((concourse.access_key_id))

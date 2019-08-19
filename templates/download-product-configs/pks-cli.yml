@@ -1,0 +1,6 @@
+---
+pivnet-api-token: ((pivnet-api-token))
+pivnet-file-glob: "pks-linux-amd64-*"
+pivnet-product-slug: pivotal-container-service
+product-version-regex: ^1\..*$
+stemcell-iaas: none

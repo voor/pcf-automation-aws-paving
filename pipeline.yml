@@ -196,6 +196,7 @@ interpolate: &interpolate
     OM_USERNAME: ((opsman.username))
     OM_PASSWORD: ((secrets.opsman_password))
     OM_DECRYPTION_PASSPHRASE: ((secrets.opsman_decryption-passphrase))
+    CUSTOMER_NUMBER: ((secrets.customer_number))
 
 make-state-commit: &make-state-commit
   do:

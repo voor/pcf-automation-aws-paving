@@ -97,6 +97,17 @@ resources:
       region_name: ((region))
       regexp: pivotal-container-service-(.*).pivotal
 
+  - name: pks-cli
+    type: s3
+    icon: folder-google-drive
+    source:
+      bucket: ((buckets.pivnet_products))
+      access_key_id: ((secrets.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((secrets.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
+      region_name: ((region))
+      regexp: pks-linux-amd64-(.*)
+
   - name: pks-stemcell
     type: s3
     icon: folder-google-drive
@@ -402,6 +413,39 @@ jobs:
             params:
               file: pks-stemcell/*.tgz
 
+  - name: fetch-pks-cli
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+            passed: [configuration]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: daily-trigger
+            trigger: true
+          - get: certificates
+            params:
+              unpack: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: download-pks-product-and-stemcell
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/download-product.yml
+        params:
+          CONFIG_FILE: ((pcf.env_name))/download-product-configs/pks-cli.yml
+          VARS_FILES: config/((pcf.env_name))/download-product-configs/vars.yml
+        input_mapping:
+          config: configuration-interpolated
+      - in_parallel:
+          - put: pks-cli
+            params:
+              file: downloaded-product/pks-linux-amd64-*
+
   # INSTALL JOBS
 
   - name: install-opsman
@@ -701,6 +745,69 @@ jobs:
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
+  - name: make-system-cluster
+    serial: true
+    public: false
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+            passed:
+              - apply-product-changes
+            trigger: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: pks-cli
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+            trigger: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: create-cluster
+        image: platform-automation-image
+        input_mapping:
+          env: configuration-interpolated
+          pks-cli: pks-cli
+        params:
+          ENV_NAME: ((pcf.env_name))
+          DNS_NAME: ((terraform.aws.dns_suffix))
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+        config:
+          platform: linux
+          inputs:
+            - name: env
+            - name: pks-cli
+          run:
+            path: /bin/sh
+            args:
+              - -c
+              - |
+                set -eux
+                export PKS_PASSWORD=$(om --env env/"${ENV_FILE}" credentials --product-name pivotal-container-service -c .properties.uaa_admin_password -f secret)
+                export PKS_USERNAME="admin"
+                export PKS_ENDPOINT="https://api.pks.${ENV_NAME}.${DNS_NAME}"
+                export PKS_CLI=$(ls -1 pks-cli/pks-linux-amd64-*)
+                chmod +x $PKS_CLI
+                $PKS_CLI login -a ${PKS_ENDPOINT} -u ${PKS_USERNAME} -p ${PKS_PASSWORD} --ca-cert /etc/ssl/certs/ca-certificates.crt
+                set +e
+                $PKS_CLI cluster system
+                if [ $? -ne 0 ]; then
+                  echo "Creating System cluster..."
+                  $PKS_CLI create-cluster system -n 2 -p small -e system.pks.${ENV_NAME}.${DNS_NAME}
+                else
+                  echo "System cluster already exists, no further action."
+                fi
+                set -e
+
+    
+
   - name: destroy-installation
     serial: true
     public: false
@@ -805,6 +912,7 @@ groups:
     jobs:
       - fetch-opsman
       - fetch-pks
+      - fetch-pks-cli
   - name: install-platform
     jobs:
       - install-opsman
@@ -820,6 +928,7 @@ groups:
       - configure-product
       - apply-product-changes
       - export-installation
+      - make-system-cluster
   - name: destroy
     jobs:
       - destroy-terraform

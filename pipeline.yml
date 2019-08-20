@@ -745,7 +745,7 @@ jobs:
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
-  - name: make-system-cluster
+  - name: create-system-cluster
     serial: true
     public: false
     plan:
@@ -770,8 +770,9 @@ jobs:
             trigger: true
       - task: interpolate-config
         <<: *interpolate
-      - task: create-cluster
+      - task: create-system-cluster
         image: platform-automation-image
+        # file: pcf-automation-source/tasks/create-system-cluster.yml
         input_mapping:
           env: configuration-interpolated
           pks-cli: pks-cli
@@ -789,13 +790,14 @@ jobs:
             args:
               - -c
               - |
-                set -eux
+                set -e
                 export PKS_PASSWORD=$(om --env env/"${ENV_FILE}" credentials --product-name pivotal-container-service -c .properties.uaa_admin_password -f secret)
                 export PKS_USERNAME="admin"
                 export PKS_ENDPOINT="https://api.pks.${ENV_NAME}.${DNS_NAME}"
                 export PKS_CLI=$(ls -1 pks-cli/pks-linux-amd64-*)
                 chmod +x $PKS_CLI
                 $PKS_CLI login -a ${PKS_ENDPOINT} -u ${PKS_USERNAME} -p ${PKS_PASSWORD} --ca-cert /etc/ssl/certs/ca-certificates.crt
+                set -ux
                 set +e
                 $PKS_CLI cluster system
                 if [ $? -ne 0 ]; then
@@ -804,9 +806,6 @@ jobs:
                 else
                   echo "System cluster already exists, no further action."
                 fi
-                set -e
-
-    
 
   - name: destroy-installation
     serial: true
@@ -928,7 +927,7 @@ groups:
       - configure-product
       - apply-product-changes
       - export-installation
-      - make-system-cluster
+      - create-system-cluster
   - name: destroy
     jobs:
       - destroy-terraform

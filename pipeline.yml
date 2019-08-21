@@ -804,6 +804,7 @@ jobs:
           ENV_NAME: ((pcf.env_name))
           DNS_NAME: ((terraform.aws.dns_suffix))
           ENV_FILE: ((pcf.env_name))/env/env.yml
+          SUBNETS_FILE: ((pcf.env_name))/config/public_subnets.txt
           AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
           AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
           AWS_DEFAULT_REGION: ((region))

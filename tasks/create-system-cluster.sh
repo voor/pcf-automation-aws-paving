@@ -36,4 +36,4 @@ bosh vms --json >> master-instances/bosh-vms.json
 export CLUSTER_UUID=$($PKS_CLI cluster system --json | om interpolate --path /uuid)
 while read subnet; do
     aws ec2 create-tags --resources ${subnet} --tags Key=kubernetes.io/cluster/service-instance_${CLUSTER_UUID},Value=shared
-done <env/public_subnets.txt
+done <env/${SUBNETS_FILE}

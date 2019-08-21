@@ -7,6 +7,7 @@ params:
   AWS_SECRET_ACCESS_KEY:
   AWS_DEFAULT_REGION:
   OPS_MANAGER_KEY_PATH:
+  SUBNETS_FILE:
 inputs:
   - name: pcf-automation-source
   - name: env

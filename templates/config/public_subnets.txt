@@ -1,0 +1,3 @@
+{{range (ds "data").public_subnet_ids}}
+{{.}}
+{{end}}

@@ -776,6 +776,7 @@ jobs:
     public: false
     plan:
       - in_parallel:
+          - get: kubernetes-lb
           - get: platform-automation-image
             params:
               unpack: true
@@ -798,70 +799,7 @@ jobs:
         <<: *interpolate
       - task: create-system-cluster
         image: platform-automation-image
-        # file: pcf-automation-source/tasks/create-system-cluster.yml
-        input_mapping:
-          env: configuration-interpolated
-          pks-cli: pks-cli
-        output_mapping:
-          master-instances: master-instances
-        params:
-          ENV_NAME: ((pcf.env_name))
-          DNS_NAME: ((terraform.aws.dns_suffix))
-          ENV_FILE: ((pcf.env_name))/env/env.yml
-          AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
-          AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
-          AWS_DEFAULT_REGION: ((region))
-          OPS_MANAGER_KEY_PATH: ((pcf.env_name))/config/ops_manager_ssh_private_key.pem
-        config:
-          platform: linux
-          inputs:
-            - name: env
-            - name: pks-cli
-          outputs:
-            - name: master-instances
-          run:
-            path: /bin/sh
-            args:
-              - -c
-              - |
-                set -e
-                chmod 600 env/"${OPS_MANAGER_KEY_PATH}"
-                eval "$(om --env env/"${ENV_FILE}" bosh-env --ssh-private-key env/"${OPS_MANAGER_KEY_PATH}")"
-                export PKS_PASSWORD=$(om --env env/"${ENV_FILE}" credentials --product-name pivotal-container-service -c .properties.uaa_admin_password -f secret)
-                export PKS_USERNAME="admin"
-                export PKS_ENDPOINT="https://api.pks.${ENV_NAME}.${DNS_NAME}"
-                export PKS_CLI=$(ls -1 pks-cli/pks-linux-amd64-*)
-                chmod +x $PKS_CLI
-                $PKS_CLI login -a ${PKS_ENDPOINT} -u ${PKS_USERNAME} -p ${PKS_PASSWORD} --ca-cert /etc/ssl/certs/ca-certificates.crt
-                set -ux
-                set +e
-                $PKS_CLI cluster system
-                if [ $? -ne 0 ]; then
-                  echo "Creating System cluster..."
-                  $PKS_CLI create-cluster system -n 2 -p small -e system.pks.${ENV_NAME}.${DNS_NAME}
-                else
-                  echo "System cluster already exists, no further action."
-                fi
-                set -e
-
-                mkdir -p master-instances
-
-                echo "cluster_name: system" >> master-instances/cluster.yml
-                echo "cluster_host: system.pks.${ENV_NAME}.${DNS_NAME}" >> master-instances/cluster.yml
-
-                $PKS_CLI cluster system --json >> master-instances/pks-cluster.json
-                bosh vms --json >> master-instances/bosh-vms.json
-                
-      # - task: get-master-ip
-      #   image: stedolan/jq
-      #   input_mapping:
-      #     master-instances: master-instances
-      #     env: configuration-interpolated
-      #     pks-cli: pks-cli
-      #   output_mapping:
-      #     master-instances: master-instances
-      #   params:
-      - get: kubernetes-lb
+        file: pcf-automation-source/tasks/create-system-cluster.yml
       - put: env-state-system-cluster
         params:
           env_name: ((pcf.env_name))

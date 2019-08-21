@@ -35,6 +35,9 @@ github:
     terraforming-aws:
       uri: "https://github.com/pivotal-cf/terraforming-aws"
       branch: "master"
+    kubernetes-lb:
+      uri: "https://github.com/voor/kubernetes-lb.git"
+      branch: "master"
 
 buckets:
   minio: true

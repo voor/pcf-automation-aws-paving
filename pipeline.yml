@@ -846,26 +846,30 @@ jobs:
 
                 mkdir -p master-instances
 
+                echo "cluster_name: system" >> master-instances/cluster.yml
+                echo "cluster_host: system.pks.${ENV_NAME}.${DNS_NAME}" >> master-instances/cluster.yml
+
                 $PKS_CLI cluster system --json >> master-instances/pks-cluster.json
                 bosh vms --json >> master-instances/bosh-vms.json
                 
-      - task: get-master-ip
-        image: stedolan/jq
-        input_mapping:
-          master-instances: master-instances
-          env: configuration-interpolated
-          pks-cli: pks-cli
-        output_mapping:
-          master-instances: master-instances
-        params:
+      # - task: get-master-ip
+      #   image: stedolan/jq
+      #   input_mapping:
+      #     master-instances: master-instances
+      #     env: configuration-interpolated
+      #     pks-cli: pks-cli
+      #   output_mapping:
+      #     master-instances: master-instances
+      #   params:
       - get: kubernetes-lb
       - put: env-state-system-cluster
         params:
           env_name: ((pcf.env_name))
           terraform_source: kubernetes-lb
           var_files:
-            - master-instances/instances.yml
+            - master-instances/pks-cluster.json
             - env-state-aws/metadata
+            - master-instances/cluster.yml
           vars:
             cluster_host: system.pks.((pcf.env_name)).((terraform.aws.dns_suffix))
             cluster_name: system

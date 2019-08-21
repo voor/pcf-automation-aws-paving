@@ -51,6 +51,25 @@ resources:
         AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
         AWS_DEFAULT_REGION: ((region))
 
+  - name: env-state-system-cluster
+    type: terraform
+    icon: alpha-t-box
+    source:
+      backend_type: s3
+      backend_config:
+        bucket: ((buckets.installation))
+        key: system-cluster.tfstate
+        endpoint: ((buckets.endpoints.installation))
+        access_key: ((secrets.installation_bucket_access_key_id))
+        secret_key: ((secrets.installation_bucket_secret_access_key))
+        profile: "not_default"
+        skip_credentials_validation: ((buckets.minio))
+        force_path_style: ((buckets.minio))
+      env:
+        AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
+        AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
+        AWS_DEFAULT_REGION: ((region))
+
   # buckets
 
   - name: platform-automation-tasks
@@ -161,6 +180,13 @@ resources:
     source:
       uri: ((github.repos.pcf-automation-source.uri))
       branch: ((github.repos.pcf-automation-source.branch))
+
+  - name: kubernetes-lb
+    type: git
+    icon: github-circle
+    source:
+      uri: ((github.repos.kubernetes-lb.uri))
+      branch: ((github.repos.kubernetes-lb.branch))
 
   - name: terraforming-aws
     type: git
@@ -776,21 +802,31 @@ jobs:
         input_mapping:
           env: configuration-interpolated
           pks-cli: pks-cli
+        output_mapping:
+          master-instances: master-instances
         params:
           ENV_NAME: ((pcf.env_name))
           DNS_NAME: ((terraform.aws.dns_suffix))
           ENV_FILE: ((pcf.env_name))/env/env.yml
+          AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
+          AWS_DEFAULT_REGION: ((region))
+          OPS_MANAGER_KEY_PATH: ((pcf.env_name))/config/ops_manager_ssh_private_key.pem
         config:
           platform: linux
           inputs:
             - name: env
             - name: pks-cli
+          outputs:
+            - name: master-instances
           run:
             path: /bin/sh
             args:
               - -c
               - |
                 set -e
+                chmod 600 env/"${OPS_MANAGER_KEY_PATH}"
+                eval "$(om --env env/"${ENV_FILE}" bosh-env --ssh-private-key env/"${OPS_MANAGER_KEY_PATH}")"
                 export PKS_PASSWORD=$(om --env env/"${ENV_FILE}" credentials --product-name pivotal-container-service -c .properties.uaa_admin_password -f secret)
                 export PKS_USERNAME="admin"
                 export PKS_ENDPOINT="https://api.pks.${ENV_NAME}.${DNS_NAME}"
@@ -806,6 +842,34 @@ jobs:
                 else
                   echo "System cluster already exists, no further action."
                 fi
+                set -e
+
+                mkdir -p master-instances
+
+                $PKS_CLI cluster system --json >> master-instances/pks-cluster.json
+                bosh vms --json >> master-instances/bosh-vms.json
+                
+      - task: get-master-ip
+        image: stedolan/jq
+        input_mapping:
+          master-instances: master-instances
+          env: configuration-interpolated
+          pks-cli: pks-cli
+        output_mapping:
+          master-instances: master-instances
+        params:
+      - get: kubernetes-lb
+      - put: env-state-system-cluster
+        params:
+          env_name: ((pcf.env_name))
+          terraform_source: kubernetes-lb
+          var_files:
+            - master-instances/instances.yml
+            - env-state-aws/metadata
+          vars:
+            cluster_host: system.pks.((pcf.env_name)).((terraform.aws.dns_suffix))
+            cluster_name: system
+    
 
   - name: destroy-installation
     serial: true
@@ -853,9 +917,20 @@ jobs:
       - in_parallel:
           - get: terraforming-aws
             trigger: false
+          - get: kubernetes-lb
+            trigger: false
           - get: configuration
           - get: env-state-aws
             passed: [destroy-installation]
+          - get: env-state-system-cluster
+      - put: env-state-system-cluster
+        params:
+          terraform_source: kubernetes-lb
+          delete_on_failure: true
+          env_name: ((pcf.env_name))
+          action: destroy
+        get_params:
+          action: destroy
       - put: env-state-aws
         params:
           terraform_source: terraforming-aws/terraforming-pks

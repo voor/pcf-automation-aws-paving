@@ -1,6 +1,7 @@
 platform: linux
 
 inputs:
+- name: pcf-automation-source
 - name: config # contains the director ssl configuration file
 - name: env # contains the env file with target OpsMan Information
 

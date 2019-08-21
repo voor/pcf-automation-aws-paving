@@ -8,6 +8,7 @@ params:
   AWS_DEFAULT_REGION:
   OPS_MANAGER_KEY_PATH:
 inputs:
+  - name: pcf-automation-source
   - name: env
   - name: pks-cli
 outputs:

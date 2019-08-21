@@ -6,6 +6,7 @@ image_resource:
     repository: voor/dehydrated-route53
     tag: latest
 inputs:
+  - name: pcf-automation-source
   - name: certificates
   - name: certificates-version
 outputs:

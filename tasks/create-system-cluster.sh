@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 set -e
 chmod 600 env/"${OPS_MANAGER_KEY_PATH}"

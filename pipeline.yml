@@ -800,6 +800,19 @@ jobs:
       - task: create-system-cluster
         image: platform-automation-image
         file: pcf-automation-source/tasks/create-system-cluster.yml
+        params:
+          ENV_NAME: ((pcf.env_name))
+          DNS_NAME: ((terraform.aws.dns_suffix))
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+          AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
+          AWS_DEFAULT_REGION: ((region))
+          OPS_MANAGER_KEY_PATH: ((pcf.env_name))/config/ops_manager_ssh_private_key.pem
+        input_mapping:
+          env: configuration-interpolated
+          pks-cli: pks-cli
+        output_mapping:
+          master-instances: master-instances
       - put: env-state-system-cluster
         params:
           env_name: ((pcf.env_name))

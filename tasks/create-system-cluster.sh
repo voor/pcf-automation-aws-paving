@@ -19,7 +19,7 @@ $PKS_CLI cluster system
 
 if [ $? -ne 0 ]; then
     echo "Creating System cluster..."
-    $PKS_CLI create-cluster system -n 2 -p small -e system.pks.${ENV_NAME}.${DNS_NAME}
+    $PKS_CLI create-cluster system -n 2 -p system -e system.pks.${ENV_NAME}.${DNS_NAME}
 else
     echo "System cluster already exists, no further action."
 fi

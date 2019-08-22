@@ -32,6 +32,9 @@ You will need to head over to [terraforming control plane](http://docs.pivotal.i
 #### Option 2
 Install Concourse on Kubernetes [Hush House reference](https://github.com/concourse/hush-house) or [Helm Concourse](https://github.com/helm/charts/tree/master/stable/concourse)
 
+#### Option 3
+If you don't want to install Concourse **at all** and you're a Pivotal employee, you can use [Wings](https://wings.pivotal.io/) or [Hush House](https://hush-house.pivotal.io/).  If you're on my team you already have an account!
+
 ### Create Two S3/Minio Buckets
 
 You will need two buckets:
@@ -58,7 +61,7 @@ credhub import -f credhub-secrets.yml
 
 If you are using Concourse on Kubernetes, then you can store the initial credentials in Kubernetes secrets; due to the interpolate step being credhub specific you'll have split credentials that live in both locations.  See the `kustomization.example.yml` for how to generate a secrets file for those.
 
-### Deploy Pipline
+### Deploy Pipeline
 
 ```
 # Login from web UI, this usually works a lot easier and is more secure anyway.

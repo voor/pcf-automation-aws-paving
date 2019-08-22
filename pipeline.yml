@@ -51,6 +51,25 @@ resources:
         AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
         AWS_DEFAULT_REGION: ((region))
 
+  - name: env-state-system-cluster
+    type: terraform
+    icon: alpha-t-box
+    source:
+      backend_type: s3
+      backend_config:
+        bucket: ((buckets.installation))
+        key: system-cluster.tfstate
+        endpoint: ((buckets.endpoints.installation))
+        access_key: ((secrets.installation_bucket_access_key_id))
+        secret_key: ((secrets.installation_bucket_secret_access_key))
+        profile: "not_default"
+        skip_credentials_validation: ((buckets.minio))
+        force_path_style: ((buckets.minio))
+      env:
+        AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
+        AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
+        AWS_DEFAULT_REGION: ((region))
+
   # buckets
 
   - name: platform-automation-tasks
@@ -96,6 +115,17 @@ resources:
       endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: pivotal-container-service-(.*).pivotal
+
+  - name: pks-cli
+    type: s3
+    icon: folder-google-drive
+    source:
+      bucket: ((buckets.pivnet_products))
+      access_key_id: ((secrets.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((secrets.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
+      region_name: ((region))
+      regexp: pks-linux-amd64-(.*)
 
   - name: pks-stemcell
     type: s3
@@ -151,6 +181,13 @@ resources:
       uri: ((github.repos.pcf-automation-source.uri))
       branch: ((github.repos.pcf-automation-source.branch))
 
+  - name: kubernetes-lb
+    type: git
+    icon: github-circle
+    source:
+      uri: ((github.repos.kubernetes-lb.uri))
+      branch: ((github.repos.kubernetes-lb.branch))
+
   - name: terraforming-aws
     type: git
     icon: github-circle
@@ -196,6 +233,7 @@ interpolate: &interpolate
     OM_USERNAME: ((opsman.username))
     OM_PASSWORD: ((secrets.opsman_password))
     OM_DECRYPTION_PASSPHRASE: ((secrets.opsman_decryption-passphrase))
+    CUSTOMER_NUMBER: ((secrets.customer_number))
 
 make-state-commit: &make-state-commit
   do:
@@ -259,7 +297,6 @@ jobs:
     public: false
     plan:
       - get: terraforming-aws
-        trigger: true
       - put: env-state-aws
         params:
           env_name: ((pcf.env_name))
@@ -401,6 +438,39 @@ jobs:
           - put: pks-stemcell
             params:
               file: pks-stemcell/*.tgz
+
+  - name: fetch-pks-cli
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+            passed: [configuration]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: daily-trigger
+            trigger: true
+          - get: certificates
+            params:
+              unpack: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: download-pks-product-and-stemcell
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/download-product.yml
+        params:
+          CONFIG_FILE: ((pcf.env_name))/download-product-configs/pks-cli.yml
+          VARS_FILES: config/((pcf.env_name))/download-product-configs/vars.yml
+        input_mapping:
+          config: configuration-interpolated
+      - in_parallel:
+          - put: pks-cli
+            params:
+              file: downloaded-product/pks-linux-amd64-*
 
   # INSTALL JOBS
 
@@ -701,6 +771,62 @@ jobs:
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
+  - name: create-system-cluster
+    serial: true
+    public: false
+    plan:
+      - in_parallel:
+          - get: kubernetes-lb
+          - get: platform-automation-image
+            params:
+              unpack: true
+            passed:
+              - apply-product-changes
+            trigger: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: pks-cli
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+            trigger: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: create-system-cluster
+        image: platform-automation-image
+        file: pcf-automation-source/tasks/create-system-cluster.yml
+        params:
+          ENV_NAME: ((pcf.env_name))
+          DNS_NAME: ((terraform.aws.dns_suffix))
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+          SUBNETS_FILE: ((pcf.env_name))/config/public_subnets.txt
+          AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
+          AWS_DEFAULT_REGION: ((region))
+          OPS_MANAGER_KEY_PATH: ((pcf.env_name))/config/ops_manager_ssh_private_key.pem
+        input_mapping:
+          env: configuration-interpolated
+          pks-cli: pks-cli
+        output_mapping:
+          master-instances: master-instances
+      - put: env-state-system-cluster
+        params:
+          env_name: ((pcf.env_name))
+          terraform_source: kubernetes-lb
+          var_files:
+            - master-instances/pks-cluster.json
+            - env-state-aws/metadata
+            - master-instances/cluster.yml
+          vars:
+            cluster_host: system.pks.((pcf.env_name)).((terraform.aws.dns_suffix))
+            cluster_name: system
+    
+
   - name: destroy-installation
     serial: true
     public: false
@@ -747,9 +873,20 @@ jobs:
       - in_parallel:
           - get: terraforming-aws
             trigger: false
+          - get: kubernetes-lb
+            trigger: false
           - get: configuration
           - get: env-state-aws
             passed: [destroy-installation]
+          - get: env-state-system-cluster
+      - put: env-state-system-cluster
+        params:
+          terraform_source: kubernetes-lb
+          delete_on_failure: true
+          env_name: ((pcf.env_name))
+          action: destroy
+        get_params:
+          action: destroy
       - put: env-state-aws
         params:
           terraform_source: terraforming-aws/terraforming-pks
@@ -805,6 +942,7 @@ groups:
     jobs:
       - fetch-opsman
       - fetch-pks
+      - fetch-pks-cli
   - name: install-platform
     jobs:
       - install-opsman
@@ -820,6 +958,7 @@ groups:
       - configure-product
       - apply-product-changes
       - export-installation
+      - create-system-cluster
   - name: destroy
     jobs:
       - destroy-terraform

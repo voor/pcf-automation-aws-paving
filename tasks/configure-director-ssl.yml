@@ -1,6 +1,7 @@
 platform: linux
 
 inputs:
+- name: pcf-automation-source
 - name: config # contains the director ssl configuration file
 - name: env # contains the env file with target OpsMan Information
 
@@ -12,13 +13,4 @@ params:
   PRIVATE_KEY_PEM: ops_manager_privkey.pem
 
 run:
-  path: bash
-  args:
-  - "-c"
-  - |
-    cat /var/version && echo ""
-    set -eu
-    # shellcheck disable=SC2068
-    om --env env/"${ENV_FILE}" update-ssl-certificate \
-       --certificate-pem "$(cat config/${CERTIFICATE_PEM})" \
-       --private-key-pem "$(cat config/${PRIVATE_KEY_PEM})"
+  path: pcf-automation-source/tasks/configure-director-ssl.sh

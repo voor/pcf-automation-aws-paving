@@ -1,0 +1,18 @@
+platform: linux
+params:
+  ENV_NAME:
+  DNS_NAME:
+  ENV_FILE:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+  AWS_DEFAULT_REGION:
+  OPS_MANAGER_KEY_PATH:
+  SUBNETS_FILE:
+inputs:
+  - name: pcf-automation-source
+  - name: env
+  - name: pks-cli
+outputs:
+  - name: master-instances
+run:
+  path: pcf-automation-source/tasks/create-system-cluster.sh

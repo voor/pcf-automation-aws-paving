@@ -2,6 +2,7 @@
 platform: linux
 
 inputs:
+  - name: pcf-automation-source
   - name: repository
   # - This must be an initialized git repository.
   # - Note that any changes present in this input
@@ -38,22 +39,4 @@ params:
   #   for all commits made by this task.
 
 run:
-  path: bash
-  args:
-    - "-c"
-    - |
-      cat /var/version && echo ""
-      set -eu
-      git config --global user.email "$GIT_AUTHOR_EMAIL"
-      git config --global user.name "$GIT_AUTHOR_NAME"
-
-      git clone repository repository-commit
-
-      for fsp in ${FILE_SOURCE_PATHS}
-      do
-        cp file-source/"${fsp}" repository-commit/"$FILE_DESTINATION_DIRECTORY"
-      done
-
-      cd repository-commit
-      git add -A
-      git commit -m "$COMMIT_MESSAGE" --allow-empty
+  path: pcf-automation-source/tasks/make-git-commit.sh

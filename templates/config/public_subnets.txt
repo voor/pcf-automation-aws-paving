@@ -1,1 +1,1 @@
-{{- range (ds "data").public_subnet_ids }}{{.}} {{- end}}
+{{- range (ds "data").public_subnet_ids }}{{ printf "%s " . }}{{- end }}

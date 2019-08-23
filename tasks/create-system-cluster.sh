@@ -24,7 +24,7 @@ else
     echo "System cluster already exists, no further action."
 fi
 
-while pks cluster system | grep -m 1 "In Progress"; do sleep 15; done
+while $PKS_CLI cluster system | grep -m 1 "In Progress"; do sleep 15; done
 
 set -e
 

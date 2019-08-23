@@ -23,6 +23,9 @@ if [ $? -ne 0 ]; then
 else
     echo "System cluster already exists, no further action."
 fi
+
+while pks cluster system | grep -m 1 "In Progress"; do sleep 15; done
+
 set -e
 
 mkdir -p master-instances

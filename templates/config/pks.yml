@@ -139,6 +139,9 @@ product-properties:
     value: {{(ds "data").pks_master_iam_instance_profile_name}}
   .properties.cloud_provider.aws.iam_instance_profile_worker:
     value: {{(ds "data").pks_worker_iam_instance_profile_name}}
+  .properties.oidc_selector:
+    selected_option: disabled
+    value: disabled
   .properties.telemetry_installation_purpose_selector:
     selected_option: demo_or_poc
     value: demo_or_poc

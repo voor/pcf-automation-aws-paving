@@ -5,7 +5,7 @@ ls -la ${PWD}/certificates/
 ls -la ${PWD}/certificates-version/
 mkdir -p ${PWD}/certificates/ssl/
 
-echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} > private" > ${PWD}/domains.txt
+echo "${ENV_NAME}.${DNS_SUFFIX} *.${ENV_NAME}.${DNS_SUFFIX} *.pks.${ENV_NAME}.${DNS_SUFFIX} *.ing.${ENV_NAME}.${DNS_SUFFIX} *.apps.${ENV_NAME}.${DNS_SUFFIX} > private" > ${PWD}/domains.txt
 
 cat ${PWD}/domains.txt
 

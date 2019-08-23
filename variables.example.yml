@@ -29,6 +29,7 @@ github:
   repos:
     configuration:
       uri: "git@gitlab.example.com:USER/aws-pcf-config.git" # Change this
+      branch: "master"
     pcf-automation-source:
       uri: "https://github.com/voor/pcf-automation-aws-paving.git"
       branch: "master"

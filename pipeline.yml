@@ -201,7 +201,7 @@ resources:
     source:
       private_key: ((secrets.pcf-config_deploy_rsa_private_key))
       uri: ((github.repos.configuration.uri))
-      branch: master
+      branch: ((github.repos.configuration.branch))
 
   # triggers used to have jobs do something in a timely manner
 

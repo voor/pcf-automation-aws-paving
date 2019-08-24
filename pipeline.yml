@@ -1111,6 +1111,7 @@ groups:
     jobs:
       - fetch-opsman
       - fetch-pks
+      - fetch-harbor
       - fetch-pks-cli
   - name: install-platform
     jobs:

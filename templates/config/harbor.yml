@@ -1,5 +1,11 @@
 product-name: harbor-container-registry
 product-properties:
+  .properties.server_cert_key:
+    value:
+        cert_pem: |
+{{ indent 10 (include "fullchain") }}
+        private_key_pem: |
+{{ indent 10 (include "privkey") }}
   .properties.auth_mode:
     selected_option: uaa_auth_pks
     value: uaa_auth_pks

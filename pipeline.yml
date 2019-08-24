@@ -116,6 +116,17 @@ resources:
       region_name: ((region))
       regexp: pivotal-container-service-(.*).pivotal
 
+  - name: harbor-product
+    type: s3
+    icon: folder-google-drive
+    source:
+      bucket: ((buckets.pivnet_products))
+      access_key_id: ((secrets.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((secrets.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
+      region_name: ((region))
+      regexp: harbor-container-registry-(.*).pivotal
+
   - name: pks-cli
     type: s3
     icon: folder-google-drive
@@ -137,6 +148,17 @@ resources:
       endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: pks-stemcell/light-bosh-stemcell-(.*)-aws.*\.tgz #light-bosh-stemcell-170.15-aws-xen-hvm-ubuntu-xenial-go_agent.tgz
+
+  - name: harbor-stemcell
+    type: s3
+    icon: folder-google-drive
+    source:
+      bucket: ((buckets.pivnet_products))
+      access_key_id: ((secrets.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((secrets.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
+      region_name: ((region))
+      regexp: harbor-stemcell/light-bosh-stemcell-(.*)-aws.*\.tgz #light-bosh-stemcell-170.15-aws-xen-hvm-ubuntu-xenial-go_agent.tgz
 
   - name: installation
     type: s3
@@ -296,11 +318,14 @@ jobs:
     serial: true
     public: false
     plan:
+      - get: pcf-automation-source
       - get: terraforming-aws
       - put: env-state-aws
         params:
           env_name: ((pcf.env_name))
           terraform_source: terraforming-aws/terraforming-pks
+          override_files:
+            - pcf-automation-source/terraform_override_files/harbor.tf
           delete_on_failure: false
 
   - name: configuration
@@ -438,6 +463,44 @@ jobs:
           - put: pks-stemcell
             params:
               file: pks-stemcell/*.tgz
+
+  - name: fetch-harbor
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+            passed: [configuration]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: daily-trigger
+            trigger: true
+          - get: certificates
+            params:
+              unpack: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: download-harbor-product-and-stemcell
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/download-product.yml
+        params:
+          CONFIG_FILE: ((pcf.env_name))/download-product-configs/harbor.yml
+          VARS_FILES: config/((pcf.env_name))/download-product-configs/vars.yml
+        input_mapping:
+          config: configuration-interpolated
+        output_mapping:
+          downloaded-stemcell: harbor-stemcell
+      - in_parallel:
+          - put: harbor-product
+            params:
+              file: downloaded-product/*.pivotal
+          - put: harbor-stemcell
+            params:
+              file: harbor-stemcell/*.tgz
 
   - name: fetch-pks-cli
     plan:
@@ -638,7 +701,7 @@ jobs:
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
-  - name: upload-and-stage-product
+  - name: upload-and-stage-pks-product
     serial: true
     plan:
       - in_parallel:
@@ -677,7 +740,46 @@ jobs:
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
-  - name: upload-stemcell
+  - name: upload-and-stage-harbor-product
+    serial: true
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: harbor-product
+            trigger: true
+          - get: configuration
+            passed: [upgrade-opsman]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+      - task: interpolate-config
+        <<: *interpolate
+      - task: upload-product
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/upload-product.yml
+        input_mapping:
+          product: harbor-product
+          env: configuration-interpolated
+        params:
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+      - task: stage-product
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/stage-product.yml
+        input_mapping:
+          product: harbor-product
+          env: configuration-interpolated
+        params:
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+
+  - name: upload-pks-stemcell
     serial: true
     plan:
       - in_parallel:
@@ -708,7 +810,38 @@ jobs:
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
-  - name: configure-product
+  - name: upload-harbor-stemcell
+    serial: true
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: harbor-stemcell
+            trigger: true
+          - get: configuration
+            passed: [upgrade-opsman]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+      - task: interpolate-config
+        <<: *interpolate
+      - task: upload-harbor-stemcell
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/upload-stemcell.yml
+        input_mapping:
+          env: configuration-interpolated
+          stemcell: harbor-stemcell
+        params:
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+
+  - name: configure-pks-product
     serial: true
     plan:
       - in_parallel:
@@ -716,7 +849,7 @@ jobs:
             params:
               unpack: true
             passed:
-              - upload-and-stage-product
+              - upload-and-stage-pks-product
             trigger: true
           - get: platform-automation-tasks
             params:
@@ -741,6 +874,39 @@ jobs:
           CONFIG_FILE: ((pcf.env_name))/config/pks.yml
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
+  - name: configure-harbor-product
+    serial: true
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+            passed:
+              - upload-and-stage-harbor-product
+            trigger: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+            trigger: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: configure-product
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/configure-product.yml
+        input_mapping:
+          config: configuration-interpolated
+          env: configuration-interpolated
+        params:
+          CONFIG_FILE: ((pcf.env_name))/config/harbor.yml
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+
   - name: apply-product-changes
     serial: true
     plan:
@@ -749,7 +915,10 @@ jobs:
             params:
               unpack: true
             passed:
-              - configure-product
+              - configure-pks-product
+              - upload-pks-stemcell
+              - configure-harbor-product
+              - upload-harbor-stemcell
             trigger: true
           - get: platform-automation-tasks
             params:
@@ -953,9 +1122,12 @@ groups:
       - export-installation
   - name: install-product
     jobs:
-      - upload-and-stage-product
-      - upload-stemcell
-      - configure-product
+      - upload-and-stage-pks-product
+      - upload-pks-stemcell
+      - configure-pks-product
+      - upload-and-stage-harbor-product
+      - upload-harbor-stemcell
+      - configure-harbor-product
       - apply-product-changes
       - export-installation
       - create-system-cluster

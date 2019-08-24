@@ -1,0 +1,70 @@
+product-name: harbor-container-registry
+product-properties:
+  .properties.auth_mode:
+    selected_option: uaa_auth_pks
+    value: uaa_auth_pks
+  .properties.clair_updater_interval:
+    value: 0
+  .properties.customize_container_network:
+    selected_option: default
+    value: default
+  .properties.hostname:
+    value: {{ (ds "data").harbor_endpoint }}
+  .properties.no_proxy:
+    value: 127.0.0.1,localhost,ui,registry
+  .properties.registry_storage:
+    selected_option: s3
+    value: s3
+  .properties.registry_storage.s3.bucket:
+    value: {{ (ds "data").harbor_bucket }}
+  .properties.registry_storage.s3.chunksize:
+    value: 5242880
+  .properties.registry_storage.s3.region:
+    value: {{ (ds "data").region }}
+  .properties.registry_storage.s3.secure:
+    value: true
+  .properties.registry_storage.s3.v4auth:
+    value: true
+  .properties.vm_monitor:
+    selected_option: no_monitor
+    value: no_monitor
+  .properties.with_clair:
+    value: true
+  .properties.with_notary:
+    value: true
+network-properties:
+  network:
+    name: infrastructure
+  other_availability_zones:
+    {{range (ds "data").azs}}
+    - name: {{.}}
+    {{end}}
+  singleton_availability_zone:
+    name: {{index (ds "data").azs 0}}
+resource-config:
+  harbor-app:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+    elb_names:
+    {{range (ds "data").harbor_api_target_groups}}
+    - alb:{{.}}
+    {{end}}
+    additional_vm_extensions:
+    - harbor-api-lb-security-groups
+    max_in_flight: 1
+  smoke-testing:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+    max_in_flight: 1
+errand-config:
+  smoke-testing:
+    post-deploy-state: when-changed
+  uaa-deregistration:
+    pre-delete-state: false
+

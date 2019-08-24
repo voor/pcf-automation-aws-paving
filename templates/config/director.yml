@@ -96,3 +96,6 @@ vmextensions-configuration:
   - name: pks-api-lb-security-groups
     cloud_properties:
       security_groups: ["pks_api_lb_security_group", "vms_security_group"]
+  - name: harbor-api-lb-security-groups
+    cloud_properties:
+      security_groups: [{{ (ds "data").harbor_lb_security_group | quote }}, "vms_security_group"]

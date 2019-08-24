@@ -4,6 +4,9 @@ az-configuration:
 properties-configuration:
   director_configuration:
     ntp_servers_string: 169.254.169.123
+    resurrector_enabled: true
+    post_deploy_enabled: true
+    retry_bosh_deploys: true
 {{if index (ds "data") "ssl_cert"}}
   security_configuration:
     trusted_certificates: |

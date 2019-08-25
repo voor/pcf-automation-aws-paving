@@ -102,3 +102,4 @@ vmextensions-configuration:
   - name: harbor-api-lb-security-groups
     cloud_properties:
       security_groups: [{{ (ds "data").harbor_lb_security_group | quote }}, "vms_security_group"]
+      iam_instance_profile: {{ (ds "data").harbor_profile_name }}

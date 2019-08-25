@@ -119,3 +119,136 @@ resource "aws_route53_record" "harbor_dns" {
 
   count = "${var.use_route53}"
 }
+
+data "aws_iam_policy_document" "harbor_policy" {
+  statement {
+    sid = "1"
+
+    actions = [
+      "s3:PutAnalyticsConfiguration",
+      "s3:GetObjectVersionTagging",
+      "s3:CreateBucket",
+      "s3:ReplicateObject",
+      "s3:GetBucketObjectLockConfiguration",
+      "s3:GetObjectAcl",
+      "s3:PutLifecycleConfiguration",
+      "s3:GetObjectVersionAcl",
+      "s3:PutBucketAcl",
+      "s3:PutObjectTagging",
+      "s3:DeleteObject",
+      "s3:DeleteObjectTagging",
+      "s3:GetBucketPolicyStatus",
+      "s3:GetObjectRetention",
+      "s3:GetBucketWebsite",
+      "s3:PutReplicationConfiguration",
+      "s3:DeleteObjectVersionTagging",
+      "s3:PutObjectLegalHold",
+      "s3:GetBucketNotification",
+      "s3:GetObjectLegalHold",
+      "s3:PutBucketCORS",
+      "s3:GetReplicationConfiguration",
+      "s3:ListMultipartUploadParts",
+      "s3:GetObject",
+      "s3:PutBucketNotification",
+      "s3:PutObject",
+      "s3:DescribeJob",
+      "s3:PutBucketLogging",
+      "s3:PutObjectVersionAcl",
+      "s3:GetAnalyticsConfiguration",
+      "s3:GetObjectVersionForReplication",
+      "s3:PutBucketObjectLockConfiguration",
+      "s3:GetLifecycleConfiguration",
+      "s3:ListBucketByTags",
+      "s3:GetBucketTagging",
+      "s3:GetInventoryConfiguration",
+      "s3:PutAccelerateConfiguration",
+      "s3:DeleteObjectVersion",
+      "s3:GetBucketLogging",
+      "s3:ListBucketVersions",
+      "s3:ReplicateTags",
+      "s3:RestoreObject",
+      "s3:GetAccelerateConfiguration",
+      "s3:ListBucket",
+      "s3:GetBucketPolicy",
+      "s3:PutEncryptionConfiguration",
+      "s3:GetEncryptionConfiguration",
+      "s3:GetObjectVersionTorrent",
+      "s3:AbortMultipartUpload",
+      "s3:GetBucketRequestPayment",
+      "s3:PutBucketTagging",
+      "s3:UpdateJobPriority",
+      "s3:GetObjectTagging",
+      "s3:GetMetricsConfiguration",
+      "s3:PutBucketVersioning",
+      "s3:PutObjectAcl",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:ListBucketMultipartUploads",
+      "s3:PutBucketPublicAccessBlock",
+      "s3:PutMetricsConfiguration",
+      "s3:PutObjectVersionTagging",
+      "s3:GetBucketVersioning",
+      "s3:UpdateJobStatus",
+      "s3:GetBucketAcl",
+      "s3:PutInventoryConfiguration",
+      "s3:GetObjectTorrent",
+      "s3:ObjectOwnerOverrideToBucketOwner",
+      "s3:PutBucketRequestPayment",
+      "s3:PutBucketWebsite",
+      "s3:PutObjectRetention",
+      "s3:GetBucketCORS",
+      "s3:PutBucketPolicy",
+      "s3:GetBucketLocation",
+      "s3:GetObjectVersion",
+      "s3:ReplicateDelete",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.harbor_bucket.arn}",
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_policy" "harbor_policy" {
+  name   = "${var.env_name}_harbor-policy"
+  path   = "/"
+  policy = "${data.aws_iam_policy_document.harbor_policy.json}"
+}
+
+resource "aws_iam_role" "harbor_role" {
+  name = "${var.env_name}_harbor"
+
+  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "harbor_attachment" {
+  role       = "${aws_iam_role.harbor_role.name}"
+  policy_arn = "${aws_iam_policy.harbor_policy.arn}"
+}
+
+resource "aws_iam_instance_profile" "harbor_profile" {
+  name = "${var.env_name}_harbor"
+  role = "${aws_iam_role.harbor_role.name}"
+
+  lifecycle {
+    ignore_changes = ["name"]
+  }
+}
+
+output "harbor_profile_name" {
+  value = "${aws_iam_instance_profile.harbor_profile.name}"
+}

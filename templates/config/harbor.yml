@@ -10,7 +10,11 @@ product-properties:
     selected_option: uaa_auth_pks
     value: uaa_auth_pks
   .properties.admin_password:
-    value: {{env.Getenv "HARBOR_PASSWORD" }}
+    value: 
+      secret: {{env.Getenv "HARBOR_PASSWORD" }}
+  .properties.admin_password_for_smoketest:
+    value:
+      secret: {{env.Getenv "HARBOR_PASSWORD" }}
   .properties.clair_updater_interval:
     value: 0
   .properties.customize_container_network:

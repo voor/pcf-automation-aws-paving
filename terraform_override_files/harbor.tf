@@ -98,6 +98,7 @@ resource "aws_lb_target_group" "harbor_4443" {
   vpc_id   = "${module.infra.vpc_id}"
 }
 
+// Harbor s3 backing bucket
 resource "aws_s3_bucket" "harbor_bucket" {
   bucket_prefix = "${var.env_name}-harbor-bucket"
   force_destroy = true
@@ -120,9 +121,10 @@ resource "aws_route53_record" "harbor_dns" {
   count = "${var.use_route53}"
 }
 
+// Harbor iam instance role
 data "aws_iam_policy_document" "harbor_policy" {
   statement {
-    sid = "1"
+    sid = "HarborS3Policy"
 
     actions = [
       "s3:PutAnalyticsConfiguration",
@@ -251,4 +253,32 @@ resource "aws_iam_instance_profile" "harbor_profile" {
 
 output "harbor_profile_name" {
   value = "${aws_iam_instance_profile.harbor_profile.name}"
+}
+
+// Allow BOSH Director to set instance profile
+data "aws_iam_policy_document" "ops_manager_harbor" {
+  statement {
+    sid     = "AllowToCreateInstanceWithHarborInstanceProfile"
+    effect  = "Allow"
+    actions = ["iam:PassRole"]
+
+    resources = [
+      "${aws_iam_role.harbor_role.arn}",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "ops_manager_harbor_policy" {
+  name        = "ops_manager_harbor_policy"
+  description = "Allow ops manager to pass harbor role"
+  policy      = "${data.aws_iam_policy_document.ops_manager_harbor.json}"
+}
+
+data "aws_iam_role" "data_ops_manager_role" {
+  name = "${var.env_name}_om_role"
+}
+
+resource "aws_iam_role_policy_attachment" "ops_manager_policy" {
+  role       = "${data.aws_iam_role.data_ops_manager_role.name}"
+  policy_arn = "${aws_iam_policy.ops_manager_harbor_policy.arn}"
 }

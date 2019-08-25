@@ -9,6 +9,8 @@ product-properties:
   .properties.auth_mode:
     selected_option: uaa_auth_pks
     value: uaa_auth_pks
+  .properties.admin_password:
+    value: {{env.Getenv "HARBOR_PASSWORD" }}
   .properties.clair_updater_interval:
     value: 0
   .properties.customize_container_network:

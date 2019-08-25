@@ -248,14 +248,15 @@ interpolate: &interpolate
   output_mapping:
     interpolated-config: configuration-interpolated
   params:
-    ENV_NAME: ((pcf.env_name))
-    PIVNET_API_TOKEN: ((secrets.pivnet_api_token))
     AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
     AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
-    OM_USERNAME: ((opsman.username))
-    OM_PASSWORD: ((secrets.opsman_password))
-    OM_DECRYPTION_PASSPHRASE: ((secrets.opsman_decryption-passphrase))
     CUSTOMER_NUMBER: ((secrets.customer_number))
+    ENV_NAME: ((pcf.env_name))
+    HARBOR_PASSWORD: ((secrets.harbor_password))
+    OM_DECRYPTION_PASSPHRASE: ((secrets.opsman_decryption-passphrase))
+    OM_PASSWORD: ((secrets.opsman_password))
+    OM_USERNAME: ((opsman.username))
+    PIVNET_API_TOKEN: ((secrets.pivnet_api_token))
 
 make-state-commit: &make-state-commit
   do:

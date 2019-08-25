@@ -3,6 +3,9 @@
 # Secret related:
 # You can comment these out if you store them directly in credhub, or variable them in to wherever they are.
 secrets:
+  # Just use the same password as ops manager
+  harbor_password: ((concourse.opsman_password))
+  
   opsman_password: ((concourse.opsman_password))
   opsman_decryption-passphrase: ((concourse.opsman_decryption-passphrase))
 

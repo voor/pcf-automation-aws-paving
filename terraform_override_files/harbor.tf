@@ -107,6 +107,13 @@ resource "aws_s3_bucket" "harbor_bucket" {
   tags = "${merge(var.tags, map("Name", "${var.env_name} Harbor S3 Bucket"))}"
 }
 
+resource "aws_s3_bucket_public_access_block" "harbor_bucket_block" {
+  bucket = "${aws_s3_bucket.harbor_bucket.id}"
+
+  block_public_acls   = true
+  block_public_policy = true
+}
+
 resource "aws_route53_record" "harbor_dns" {
   zone_id = "${module.infra.zone_id}"
   name    = "harbor.${var.env_name}.${var.dns_suffix}"

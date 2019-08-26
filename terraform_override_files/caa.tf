@@ -1,5 +1,5 @@
 resource "aws_route53_record" "letsencrypt_caa" {
-  zone_id = "${var.zone_id}"
+  zone_id = "${module.infra.zone_id}"
   name    = ""
   type    = "CAA"
   ttl     = "300"

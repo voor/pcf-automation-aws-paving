@@ -213,7 +213,7 @@ data "aws_iam_policy_document" "ops_manager_harbor" {
 }
 
 resource "aws_iam_policy" "ops_manager_harbor_policy" {
-  name        = "ops_manager_harbor_policy"
+  name        = "${var.env_name}_ops_manager_harbor_policy"
   description = "Allow ops manager to pass harbor role"
   policy      = "${data.aws_iam_policy_document.ops_manager_harbor.json}"
 }

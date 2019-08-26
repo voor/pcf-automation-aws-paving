@@ -76,7 +76,7 @@ resource-config:
     max_in_flight: 1
 errand-config:
   smoke-testing:
-    post-deploy-state: when-changed
+    post-deploy-state: false
   uaa-deregistration:
     pre-delete-state: false
 

@@ -1050,17 +1050,17 @@ jobs:
           - get: env-state-aws
             passed: [destroy-installation]
           - get: env-state-system-cluster
-      - put: env-state-system-cluster
+      - put: env-state-aws
         params:
-          terraform_source: kubernetes-lb
+          terraform_source: terraforming-aws/terraforming-pks
           delete_on_failure: true
           env_name: ((pcf.env_name))
           action: destroy
         get_params:
           action: destroy
-      - put: env-state-aws
+      - put: env-state-system-cluster
         params:
-          terraform_source: terraforming-aws/terraforming-pks
+          terraform_source: kubernetes-lb
           delete_on_failure: true
           env_name: ((pcf.env_name))
           action: destroy

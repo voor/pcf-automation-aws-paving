@@ -1013,7 +1013,7 @@ jobs:
       - put: kubernetes-cluster
         params:
           kubeconfig_file: master-instances/kubeconfig
-          kubectl: apply -f configuration-interpolated/config/ingress_secrets.yaml
+          kubectl: apply -f configuration-interpolated/((pcf.env_name))/config/ingress_secrets.yaml
 
     
 

@@ -38,3 +38,9 @@ bosh vms --json >> master-instances/bosh-vms.json
 
 export CLUSTER_UUID=$($PKS_CLI cluster system --json | om interpolate --path /uuid)
 aws ec2 create-tags --resources $(cat env/${SUBNETS_FILE}) --tags Key=kubernetes.io/cluster/service-instance_${CLUSTER_UUID},Value=shared
+
+export KUBECONFIG=master-instances/kubeconfig
+
+echo "Output kubeconfig to ${KUBECONFIG}"
+
+$PKS_CLI get-credentials system

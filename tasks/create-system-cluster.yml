@@ -14,5 +14,6 @@ inputs:
   - name: pks-cli
 outputs:
   - name: master-instances
+  - name: kubeconfig
 run:
   path: pcf-automation-source/tasks/create-system-cluster.sh

@@ -986,7 +986,6 @@ jobs:
           pks-cli: pks-cli
         output_mapping:
           master-instances: master-instances
-          kubeconfig: master-instances
       - put: env-state-system-cluster
         params:
           env_name: ((pcf.env_name))

@@ -30,8 +30,8 @@ set -e
 
 mkdir -p master-instances
 
-echo "cluster_name: ${CLUSTER_NAME}" > master-instances/${${CLUSTER_NAME}}.cluster.yml
-echo "cluster_host: ${CLUSTER_NAME}.pks.${ENV_NAME}.${DNS_NAME}" >> master-instances/${${CLUSTER_NAME}}.cluster.yml
+echo "cluster_name: ${CLUSTER_NAME}" > master-instances/${CLUSTER_NAME}.cluster.yml
+echo "cluster_host: ${CLUSTER_NAME}.pks.${ENV_NAME}.${DNS_NAME}" >> master-instances/${CLUSTER_NAME}.cluster.yml
 
 $PKS_CLI cluster ${CLUSTER_NAME} --json >> master-instances/pks-cluster.json
 bosh vms --json >> master-instances/bosh-vms.json

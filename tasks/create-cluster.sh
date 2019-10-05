@@ -34,7 +34,7 @@ echo "cluster_name: ${CLUSTER_NAME}" > master-instances/${CLUSTER_NAME}.cluster.
 echo "cluster_host: ${CLUSTER_NAME}.pks.${ENV_NAME}.${DNS_NAME}" >> master-instances/${CLUSTER_NAME}.cluster.yml
 
 $PKS_CLI cluster ${CLUSTER_NAME} --json >> master-instances/${CLUSTER_NAME}.pks-cluster.json
-bosh vms --json
+bosh vms
 bosh vms --json >> master-instances/${CLUSTER_NAME}.bosh-vms.json
 
 export CLUSTER_UUID=$($PKS_CLI cluster ${CLUSTER_NAME} --json | om interpolate --path /uuid)

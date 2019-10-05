@@ -33,8 +33,9 @@ mkdir -p master-instances
 echo "cluster_name: ${CLUSTER_NAME}" > master-instances/${CLUSTER_NAME}.cluster.yml
 echo "cluster_host: ${CLUSTER_NAME}.pks.${ENV_NAME}.${DNS_NAME}" >> master-instances/${CLUSTER_NAME}.cluster.yml
 
-$PKS_CLI cluster ${CLUSTER_NAME} --json >> master-instances/pks-cluster.json
-bosh vms --json >> master-instances/bosh-vms.json
+$PKS_CLI cluster ${CLUSTER_NAME} --json >> master-instances/${CLUSTER_NAME}.pks-cluster.json
+bosh vms --json
+bosh vms --json >> master-instances/${CLUSTER_NAME}.bosh-vms.json
 
 export CLUSTER_UUID=$($PKS_CLI cluster ${CLUSTER_NAME} --json | om interpolate --path /uuid)
 aws ec2 create-tags --resources $(cat env/${SUBNETS_FILE}) --tags Key=kubernetes.io/cluster/service-instance_${CLUSTER_UUID},Value=shared

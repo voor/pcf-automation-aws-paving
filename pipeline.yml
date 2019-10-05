@@ -266,6 +266,7 @@ interpolate: &interpolate
     OM_PASSWORD: ((secrets.opsman_password))
     OM_USERNAME: ((opsman.username))
     PIVNET_API_TOKEN: ((secrets.pivnet_api_token))
+    PLAN_NAME: system
 
 make-state-commit: &make-state-commit
   do:

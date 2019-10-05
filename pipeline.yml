@@ -1014,7 +1014,7 @@ jobs:
             cluster_name: system
       - put: kubernetes-cluster
         params:
-          kubeconfig_file: master-instances/kubeconfig
+          kubeconfig_file: master-instances/system.kubeconfig
           kubectl: apply -f configuration-interpolated/((pcf.env_name))/config/manifests
     
 

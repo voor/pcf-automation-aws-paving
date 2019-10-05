@@ -994,9 +994,9 @@ jobs:
           env_name: ((pcf.env_name))
           terraform_source: kubernetes-lb
           var_files:
-            - master-instances/pks-cluster.json
+            - master-instances/system.pks-cluster.json
             - env-state-aws/metadata
-            - master-instances/cluster.yml
+            - master-instances/system.cluster.yml
           vars:
             cluster_host: system.pks.((pcf.env_name)).((terraform.aws.dns_suffix))
             cluster_name: system

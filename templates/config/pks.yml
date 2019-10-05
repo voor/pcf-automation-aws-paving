@@ -98,7 +98,7 @@ product-properties:
   .properties.plan10_selector.active.allow_privileged_containers:
     value: true
   .properties.plan10_selector.active.description:
-    value: This is a plan for the system k8s that is automatically installed.
+    value: This is a plan for the {{ env.Getenv "PLAN_NAME" }} k8s that is automatically installed.
   .properties.plan10_selector.active.kubelet_drain_delete_local_data:
     value: true
   .properties.plan10_selector.active.kubelet_drain_force:
@@ -123,7 +123,7 @@ product-properties:
   .properties.plan10_selector.active.max_worker_instances:
     value: 50
   .properties.plan10_selector.active.name:
-    value: system
+    value: {{ env.Getenv "PLAN_NAME" }}
   .properties.plan10_selector.active.worker_az_placement:
     value:
     {{range (ds "data").azs}}

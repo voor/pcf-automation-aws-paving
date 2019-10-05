@@ -971,8 +971,10 @@ jobs:
         <<: *interpolate
       - task: create-system-cluster
         image: platform-automation-image
-        file: pcf-automation-source/tasks/create-system-cluster.yml
+        file: pcf-automation-source/tasks/create-cluster.yml
         params:
+          CLUSTER_NAME: system
+          PLAN_NAME: system
           ENV_NAME: ((pcf.env_name))
           DNS_NAME: ((terraform.aws.dns_suffix))
           ENV_FILE: ((pcf.env_name))/env/env.yml
@@ -1012,8 +1014,7 @@ jobs:
       - put: kubernetes-cluster
         params:
           kubeconfig_file: master-instances/kubeconfig
-          kubectl: apply -f configuration-interpolated/((pcf.env_name))/config/ingress_secrets.yaml
-
+          kubectl: apply -f configuration-interpolated/((pcf.env_name))/config/manifests
     
 
   - name: destroy-installation
@@ -1152,6 +1153,8 @@ groups:
       - configure-harbor-product
       - apply-product-changes
       - export-installation
+  - name: configure-clusters
+    jobs:
       - create-system-cluster
   - name: destroy
     jobs:

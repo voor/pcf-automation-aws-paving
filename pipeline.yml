@@ -12,6 +12,12 @@ resource_types:
       repository: pivotalcf/pivnet-resource
       tag: latest-final
 
+  - name: kubernetes
+    type: docker-image
+    source:
+      repository: zlabjp/kubernetes-resource
+      tag: "1.15"
+
 resources:
   - name: platform-automation-pivnet
     type: pivnet
@@ -69,6 +75,9 @@ resources:
         AWS_ACCESS_KEY_ID: ((secrets.access_key_id))
         AWS_SECRET_ACCESS_KEY: ((secrets.secret_access_key))
         AWS_DEFAULT_REGION: ((region))
+
+  - name: kubernetes-cluster
+    type: kubernetes
 
   # buckets
 
@@ -257,6 +266,7 @@ interpolate: &interpolate
     OM_PASSWORD: ((secrets.opsman_password))
     OM_USERNAME: ((opsman.username))
     PIVNET_API_TOKEN: ((secrets.pivnet_api_token))
+    PLAN_NAME: system
 
 make-state-commit: &make-state-commit
   do:
@@ -408,8 +418,6 @@ jobs:
             passed: [configuration]
           - get: pcf-automation-source
           - get: env-state-aws
-          - get: daily-trigger
-            trigger: true
           - get: certificates
             params:
               unpack: true
@@ -441,8 +449,6 @@ jobs:
             passed: [configuration]
           - get: pcf-automation-source
           - get: env-state-aws
-          - get: daily-trigger
-            trigger: true
           - get: certificates
             params:
               unpack: true
@@ -479,8 +485,6 @@ jobs:
             passed: [configuration]
           - get: pcf-automation-source
           - get: env-state-aws
-          - get: daily-trigger
-            trigger: true
           - get: certificates
             params:
               unpack: true
@@ -517,8 +521,6 @@ jobs:
             passed: [configuration]
           - get: pcf-automation-source
           - get: env-state-aws
-          - get: daily-trigger
-            trigger: true
           - get: certificates
             params:
               unpack: true
@@ -557,7 +559,7 @@ jobs:
               unpack: true
             passed: [letsencrypt-certificates]
           - get: opsman-image
-            passed: [fetch-opsman]
+            trigger: true
           - get: configuration
           - get: pcf-automation-source
           - get: env-state-aws
@@ -970,8 +972,10 @@ jobs:
         <<: *interpolate
       - task: create-system-cluster
         image: platform-automation-image
-        file: pcf-automation-source/tasks/create-system-cluster.yml
+        file: pcf-automation-source/tasks/create-cluster.yml
         params:
+          CLUSTER_NAME: system
+          PLAN_NAME: system
           ENV_NAME: ((pcf.env_name))
           DNS_NAME: ((terraform.aws.dns_suffix))
           ENV_FILE: ((pcf.env_name))/env/env.yml
@@ -990,12 +994,28 @@ jobs:
           env_name: ((pcf.env_name))
           terraform_source: kubernetes-lb
           var_files:
-            - master-instances/pks-cluster.json
+            - master-instances/system.pks-cluster.json
             - env-state-aws/metadata
-            - master-instances/cluster.yml
+            - master-instances/system.cluster.yml
           vars:
             cluster_host: system.pks.((pcf.env_name)).((terraform.aws.dns_suffix))
             cluster_name: system
+      - put: env-state-system-cluster
+        params:
+          env_name: ((pcf.env_name))
+          plan_only: true
+          terraform_source: kubernetes-lb
+          var_files:
+            - master-instances/system.pks-cluster.json
+            - env-state-aws/metadata
+            - master-instances/system.cluster.yml
+          vars:
+            cluster_host: system.pks.((pcf.env_name)).((terraform.aws.dns_suffix))
+            cluster_name: system
+      - put: kubernetes-cluster
+        params:
+          kubeconfig_file: master-instances/system.kubeconfig
+          kubectl: apply -f configuration-interpolated/((pcf.env_name))/config/manifests
     
 
   - name: destroy-installation
@@ -1050,14 +1070,15 @@ jobs:
           - get: env-state-aws
             passed: [destroy-installation]
           - get: env-state-system-cluster
-      - put: env-state-system-cluster
-        params:
-          terraform_source: kubernetes-lb
-          delete_on_failure: true
-          env_name: ((pcf.env_name))
-          action: destroy
-        get_params:
-          action: destroy
+      - try:
+          put: env-state-system-cluster
+          params:
+            terraform_source: kubernetes-lb
+            delete_on_failure: true
+            env_name: ((pcf.env_name))
+            action: destroy
+          get_params:
+            action: destroy
       - put: env-state-aws
         params:
           terraform_source: terraforming-aws/terraforming-pks
@@ -1133,6 +1154,8 @@ groups:
       - configure-harbor-product
       - apply-product-changes
       - export-installation
+  - name: configure-clusters
+    jobs:
       - create-system-cluster
   - name: destroy
     jobs:

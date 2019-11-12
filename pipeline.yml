@@ -136,6 +136,17 @@ resources:
       region_name: ((region))
       regexp: harbor-container-registry-(.*).pivotal
 
+  - name: p-compliance-scanner-product
+    type: s3
+    icon: folder-google-drive
+    source:
+      bucket: ((buckets.pivnet_products))
+      access_key_id: ((secrets.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((secrets.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
+      region_name: ((region))
+      regexp: p-compliance-scanner-(.*).pivotal
+
   - name: pks-cli
     type: s3
     icon: folder-google-drive
@@ -168,6 +179,17 @@ resources:
       endpoint: ((buckets.endpoints.pivnet_products))
       region_name: ((region))
       regexp: harbor-stemcell/light-bosh-stemcell-(.*)-aws.*\.tgz #light-bosh-stemcell-170.15-aws-xen-hvm-ubuntu-xenial-go_agent.tgz
+
+  - name: p-compliance-scanner-stemcell
+    type: s3
+    icon: folder-google-drive
+    source:
+      bucket: ((buckets.pivnet_products))
+      access_key_id: ((secrets.pivnet_products_bucket_access_key_id))
+      secret_access_key: ((secrets.pivnet_products_bucket_secret_access_key))
+      endpoint: ((buckets.endpoints.pivnet_products))
+      region_name: ((region))
+      regexp: p-compliance-scanner-stemcell/light-bosh-stemcell-(.*)-aws.*\.tgz #light-bosh-stemcell-170.15-aws-xen-hvm-ubuntu-xenial-go_agent.tgz
 
   - name: installation
     type: s3
@@ -508,6 +530,44 @@ jobs:
             params:
               file: harbor-stemcell/*.tgz
 
+# pivnet download-product-files --product-slug='p-compliance-scanner' --release-version='1.2.13' --product-file-id=501058
+
+  - name: fetch-p-compliance-scanner
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+            passed: [configuration]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: download-p-compliance-scanner-product-and-stemcell
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/download-product.yml
+        params:
+          CONFIG_FILE: ((pcf.env_name))/download-product-configs/p-compliance-scanner.yml
+          VARS_FILES: config/((pcf.env_name))/download-product-configs/vars.yml
+        input_mapping:
+          config: configuration-interpolated
+        output_mapping:
+          downloaded-stemcell: p-compliance-scanner-stemcell
+      - in_parallel:
+        - put: p-compliance-scanner-product
+          params:
+            file: downloaded-product/*.pivotal
+        - put: p-compliance-scanner-stemcell
+          params:
+            file: p-compliance-scanner-stemcell/*.tgz
+
   - name: fetch-pks-cli
     plan:
       - in_parallel:
@@ -783,6 +843,45 @@ jobs:
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
+  - name: upload-and-stage-compliance-scanner-product
+    serial: true
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: p-compliance-scanner-product
+            trigger: true
+          - get: configuration
+            passed: [upgrade-opsman]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+      - task: interpolate-config
+        <<: *interpolate
+      - task: upload-product
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/upload-product.yml
+        input_mapping:
+          product: p-compliance-scanner-product
+          env: configuration-interpolated
+        params:
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+      - task: stage-product
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/stage-product.yml
+        input_mapping:
+          product: p-compliance-scanner-product
+          env: configuration-interpolated
+        params:
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+
   - name: upload-pks-stemcell
     serial: true
     plan:
@@ -842,6 +941,37 @@ jobs:
         input_mapping:
           env: configuration-interpolated
           stemcell: harbor-stemcell
+        params:
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+
+  - name: upload-compliance-scanner-stemcell
+    serial: true
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: p-compliance-scanner-stemcell
+            trigger: true
+          - get: configuration
+            passed: [upgrade-opsman]
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+      - task: interpolate-config
+        <<: *interpolate
+      - task: upload-compliance-scanner-stemcell
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/upload-stemcell.yml
+        input_mapping:
+          env: configuration-interpolated
+          stemcell: p-compliance-scanner-stemcell
         params:
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
@@ -909,6 +1039,39 @@ jobs:
           env: configuration-interpolated
         params:
           CONFIG_FILE: ((pcf.env_name))/config/harbor.yml
+          ENV_FILE: ((pcf.env_name))/env/env.yml
+
+  - name: configure-compliance-scanner-product
+    serial: true
+    plan:
+      - in_parallel:
+          - get: platform-automation-image
+            params:
+              unpack: true
+            passed:
+              - upload-and-stage-compliance-scanner-product
+            trigger: true
+          - get: platform-automation-tasks
+            params:
+              unpack: true
+          - get: configuration
+          - get: pcf-automation-source
+          - get: env-state-aws
+          - get: certificates
+            params:
+              unpack: true
+            passed: [letsencrypt-certificates]
+            trigger: true
+      - task: interpolate-config
+        <<: *interpolate
+      - task: configure-product
+        image: platform-automation-image
+        file: platform-automation-tasks/tasks/configure-product.yml
+        input_mapping:
+          config: configuration-interpolated
+          env: configuration-interpolated
+        params:
+          CONFIG_FILE: ((pcf.env_name))/config/compliance-scanner.yml
           ENV_FILE: ((pcf.env_name))/env/env.yml
 
   - name: apply-product-changes
@@ -1136,6 +1299,7 @@ groups:
       - fetch-pks
       - fetch-harbor
       - fetch-pks-cli
+      - fetch-p-compliance-scanner
   - name: install-platform
     jobs:
       - install-opsman
@@ -1151,7 +1315,10 @@ groups:
       - configure-pks-product
       - upload-and-stage-harbor-product
       - upload-harbor-stemcell
+      - upload-and-stage-compliance-scanner-product
+      - upload-compliance-scanner-stemcell
       - configure-harbor-product
+      - configure-compliance-scanner-product
       - apply-product-changes
       - export-installation
   - name: configure-clusters

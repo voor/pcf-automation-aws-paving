@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "compliance_scanner_policy" {
       "${aws_s3_bucket.compliance_scanner_bucket.arn}",
       "arn:aws:s3:*:*:job/*",
       "${aws_s3_bucket.compliance_scanner_bucket.arn}/*",
-    ]compliance_scanner
+    ]
   }
 }
 

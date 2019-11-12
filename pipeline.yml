@@ -360,6 +360,7 @@ jobs:
           override_files:
             - pcf-automation-source/terraform_override_files/harbor.tf
             - pcf-automation-source/terraform_override_files/caa.tf
+            - pcf-automation-source/terraform_override_files/compliance-scanner.tf
           delete_on_failure: false
 
   - name: configuration

@@ -103,3 +103,7 @@ vmextensions-configuration:
     cloud_properties:
       security_groups: [{{ (ds "data").harbor_lb_security_group | quote }}, "vms_security_group"]
       iam_instance_profile: {{ (ds "data").harbor_profile_name }}
+  - name: compliance-scanner-instance-profile
+    cloud_properties:
+      security_groups: ["vms_security_group"]
+      iam_instance_profile: {{ (ds "data").compliance_scanner_profile_name }}

@@ -1,0 +1,67 @@
+product-name: p-compliance-scanner
+product-properties:
+  .properties.benchmarks:
+    value:
+    - Base
+    - CIS-Level-1
+    - CIS-Level-2
+    - STIG
+  .properties.bucket_selector:
+    selected_option: aws
+    value: aws
+  .properties.bucket_selector.aws.bucket_name:
+    value: {{ (ds "data").compliance_scanner_bucket }}
+  .properties.bucket_selector.aws.bucket_region:
+    value: {{ (ds "data").region }}
+  .properties.enforce_cpu_limit:
+    selected_option: disabled
+    value: disabled
+  .properties.login_banner:
+    value: Unauthorized use is strictly prohibited. All access and activity is subject
+      to logging and monitoring.
+  .properties.ntp_server:
+    value: 169.254.169.254
+  .properties.scan_report_formats:
+    value:
+    - csv
+    - xml
+    - html
+# We make this REALLY REALLY high for PKS
+  .properties.scanner_timeout:
+    value: 12000000
+  .properties.scheduled_scan_enabled:
+    selected_option: disabled
+    value: disabled
+  .properties.syslog_host:
+    value: 192.0.2.1
+  .properties.syslog_port:
+    value: 514
+network-properties:
+  network:
+    name: infrastructure
+  other_availability_zones:
+    {{range (ds "data").azs}}
+    - name: {{.}}
+    {{end}}
+  singleton_availability_zone:
+    name: {{index (ds "data").azs 0}}
+resource-config:
+  oscap_store:
+    instances: automatic
+    persistent_disk:
+      size_mb: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+    additional_vm_extensions:
+    - compliance-scanner-instance-profile
+    max_in_flight: 1
+  smoke-testing:
+    instances: automatic
+    instance_type:
+      id: automatic
+    internet_connected: false
+    max_in_flight: 1
+errand-config:
+  scan_results:
+    post-deploy-state: false

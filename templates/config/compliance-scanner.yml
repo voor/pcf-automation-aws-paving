@@ -56,12 +56,6 @@ resource-config:
     additional_vm_extensions:
     - compliance-scanner-instance-profile
     max_in_flight: 1
-  smoke-testing:
-    instances: automatic
-    instance_type:
-      id: automatic
-    internet_connected: false
-    max_in_flight: 1
 errand-config:
   scan_results:
     post-deploy-state: false

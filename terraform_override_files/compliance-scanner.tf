@@ -46,7 +46,7 @@ data "aws_iam_policy_document" "compliance_scanner_policy" {
   }
 }
 
-data "aws_iam_policy_document" "assume_role_policy" {
+data "aws_iam_policy_document" "assume_role_policy_compliance_scanner" {
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -66,7 +66,7 @@ resource "aws_iam_policy" "compliance_scanner_policy" {
 resource "aws_iam_role" "compliance_scanner_role" {
   name = "${var.env_name}_compliance_scanner"
 
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.assume_role_policy_compliance_scanner.json}"
 
   lifecycle {
     create_before_destroy = true

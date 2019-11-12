@@ -110,7 +110,7 @@ resource "aws_iam_policy" "ops_manager_compliance_scanner_policy" {
   policy      = "${data.aws_iam_policy_document.ops_manager_compliance_scanner.json}"
 }
 
-resource "aws_iam_role_policy_attachment" "ops_manager_policy" {
+resource "aws_iam_role_policy_attachment" "ops_manager_policy_compliance_scanner" {
   role       = "${var.env_name}_om_role"
   policy_arn = "${aws_iam_policy.ops_manager_compliance_scanner_policy.arn}"
 }
